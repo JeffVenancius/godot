@@ -7429,7 +7429,10 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_toggle_draw_caret"), &TextEdit::_toggle_draw_caret);
 	ClassDB::bind_method(D_METHOD("_v_scroll_input"), &TextEdit::_v_scroll_input);
 	ClassDB::bind_method(D_METHOD("_update_wrap_at"), &TextEdit::_update_wrap_at);
-
+	/*
+	ClassDB::bind_method(D_METHOD("delete_char"),&TextEdit::delete_char);
+	ClassDB::bind_method(D_METHOD("delete_line"),&TextEdit::delete_line);
+*/
 	BIND_ENUM_CONSTANT(SEARCH_MATCH_CASE);
 	BIND_ENUM_CONSTANT(SEARCH_WHOLE_WORDS);
 	BIND_ENUM_CONSTANT(SEARCH_BACKWARDS);
