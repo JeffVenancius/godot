@@ -2341,6 +2341,7 @@ void TextEdit::_move_caret_left(bool p_select, bool p_move_by_word) {
 			}
 		} else {
 			// If the caret is at the start of the line, and not on the first line, move it up to the end of the previous line.
+			// not on vi mode <jeff venancius>
 			if (get_caret_column(i) == 0) {
 				if (get_caret_line(i) > 0) {
 					set_caret_line(get_caret_line(i) - get_next_visible_line_offset_from(CLAMP(get_caret_line(i) - 1, 0, text.size() - 1), -1), false, true, 0, i);
@@ -2400,6 +2401,7 @@ void TextEdit::_move_caret_right(bool p_select, bool p_move_by_word) {
 			}
 		} else {
 			// If we are at the end of the line, move the caret to the next line down.
+			// not on vi mode
 			if (get_caret_column(i) == text[get_caret_line(i)].length()) {
 				if (get_caret_line(i) < text.size() - 1) {
 					set_caret_line(get_caret_line(i) + get_next_visible_line_offset_from(CLAMP(get_caret_line(i) + 1, 0, text.size() - 1), 1), false, false, 0, i);
@@ -2492,6 +2494,7 @@ void TextEdit::_move_caret_to_line_start(bool p_select) {
 		}
 		if (get_caret_column(i) == row_start_col || wi == 0) {
 			// Compute whitespace symbols sequence length.
+			// not on vi mode unless it's ^, or maybe we do <Jeff Venancius> let is slip.
 			int current_line_whitespace_len = get_first_non_whitespace_column(get_caret_line(i));
 			if (get_caret_column(i) == current_line_whitespace_len) {
 				set_caret_column(0, i == 0, i);
@@ -6513,7 +6516,7 @@ void TextEdit::_set_symbol_lookup_word(const String &p_symbol) {
 // Overridable actions
 void TextEdit::_handle_unicode_input_internal(const uint32_t p_unicode, int p_caret) {
 	ERR_FAIL_COND(p_caret > carets.size());
-	if (!editable) {
+	if (!editable && !vi_mode) {
 		return;
 	}
 

@@ -287,6 +287,40 @@ private:
 	TextServer::StructuredTextParser st_parser = TextServer::STRUCTURED_TEXT_DEFAULT;
 	Array st_args;
 
+	/* Vi */
+	bool vi_mode = false;
+	/* Jeff Venancius pseudo-code
+		 r = set_overtype_mode_enabled(true) && is_character_action
+		 R = set_overtype_mode_enabled(true)
+		 i = set_editable(true)
+		 esc = if editable set_editable(false)
+		 I = _move_caret_to_line_start && editable = true
+		 a = _move_caret_right && insert_text_at_caret(,false)
+		 w = _move_caret_right(, true)
+		 b = _move_caret_left(, true)
+		 h = _move_caret_left(,false)
+		 l = _move_caret_right(,false)
+		 j = _move_caret_down
+		 k = _move_caret_up
+		 o = _new_line
+		 0/^ = _move_caret_to_line_start
+		 $ = _move_caret_to_line_end
+		 ctrl - b = _move_caret_page_up
+		 ctrl - u = _move_caret_page_up (create half version)
+		 ctrl - f = _move_caret_page_down
+		 ctrl - d = _move_caret_page_down (create half version)
+		 x = cut
+		 d = cut &&
+		 y = copy
+		 p = paste
+		 gg = _move_caret_document_start
+		 G = _move_caret_document_end
+		 u = undo
+		 ctrl - r = redo
+
+	
+	*/
+
 	void _clear();
 	void _update_caches();
 
