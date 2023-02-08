@@ -121,6 +121,14 @@ public:
 		SEARCH_BACKWARDS = 4
 	};
 
+	/* Vi mode */
+	enum ViMode {
+		MODE_INSERT,
+		MODE_NORMAL,
+		MODE_VISUAL,
+		MODE_COMAND,
+	};
+
 private:
 	struct GutterInfo {
 		GutterType type = GutterType::GUTTER_TYPE_STRING;
@@ -287,40 +295,6 @@ private:
 	TextServer::StructuredTextParser st_parser = TextServer::STRUCTURED_TEXT_DEFAULT;
 	Array st_args;
 
-	/* Vi */
-	bool vi_mode = false;
-	/* Jeff Venancius pseudo-code
-		 r = set_overtype_mode_enabled(true) && is_character_action
-		 R = set_overtype_mode_enabled(true)
-		 i = set_editable(true)
-		 esc = if editable set_editable(false)
-		 I = _move_caret_to_line_start && editable = true
-		 a = _move_caret_right && insert_text_at_caret(,false)
-		 w = _move_caret_right(, true)
-		 b = _move_caret_left(, true)
-		 h = _move_caret_left(,false)
-		 l = _move_caret_right(,false)
-		 j = _move_caret_down
-		 k = _move_caret_up
-		 o = _new_line
-		 0/^ = _move_caret_to_line_start
-		 $ = _move_caret_to_line_end
-		 ctrl - b = _move_caret_page_up
-		 ctrl - u = _move_caret_page_up (create half version)
-		 ctrl - f = _move_caret_page_down
-		 ctrl - d = _move_caret_page_down (create half version)
-		 x = cut
-		 d = cut &&
-		 y = copy
-		 p = paste
-		 gg = _move_caret_document_start
-		 G = _move_caret_document_end
-		 u = undo
-		 ctrl - r = redo
-
-	
-	*/
-
 	void _clear();
 	void _update_caches();
 
@@ -473,6 +447,10 @@ private:
 	void _toggle_draw_caret();
 
 	int _get_column_x_offset_for_line(int p_char, int p_line, int p_column) const;
+
+	/* Vi mode */
+	bool vi_enabled = false; // So esc can leave insert mode.
+	ViMode vi_mode = ViMode::MODE_INSERT;
 
 	/* Selection. */
 	SelectionMode selecting_mode = SelectionMode::SELECTION_MODE_NONE;
@@ -844,7 +822,7 @@ public:
 	void set_caret_blink_interval(const float p_interval);
 	float get_caret_blink_interval() const;
 
-	void set_draw_caret_when_editable_disabled(bool p_value);
+	void set_draw_caret_when_editable_disabled(const bool p_enabled);
 	bool is_drawing_caret_when_editable_disabled() const;
 
 	void set_move_caret_on_right_click_enabled(const bool p_enabled);
@@ -878,6 +856,15 @@ public:
 	int get_caret_wrap_index(int p_caret = 0) const;
 
 	String get_word_under_caret(int p_caret = -1) const;
+
+	/* Vi mode */
+	void set_vi_enabled(const bool p_enabled);
+	bool is_vi_enabled() const;
+
+	void set_vi_mode(const int p_mode);
+	int get_vi_mode() const;
+
+	void handle_vi(const uint32_t p_unicode);
 
 	/* Selection. */
 	void set_selecting_enabled(const bool p_enabled);
@@ -1050,6 +1037,7 @@ public:
 
 VARIANT_ENUM_CAST(TextEdit::EditAction);
 VARIANT_ENUM_CAST(TextEdit::CaretType);
+VARIANT_ENUM_CAST(TextEdit::ViMode);
 VARIANT_ENUM_CAST(TextEdit::LineWrappingMode);
 VARIANT_ENUM_CAST(TextEdit::SelectionMode);
 VARIANT_ENUM_CAST(TextEdit::GutterType);

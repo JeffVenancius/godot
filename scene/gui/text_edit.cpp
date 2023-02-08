@@ -2011,6 +2011,11 @@ void TextEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 		bool allow_unicode_handling = !(k->is_command_or_control_pressed() || k->is_ctrl_pressed() || k->is_alt_pressed() || k->is_meta_pressed());
 
 		// Check and handle all built in shortcuts.
+		
+		if (vi_mode) { // Which means not on insert mode.
+			handle_vi(k->get_unicode());
+			return;
+		}
 
 		// NEWLINES.
 		if (k->is_action("ui_text_newline_above", true)) {
@@ -2092,6 +2097,10 @@ void TextEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 				return;
 			}
 			if (k->is_action("ui_text_clear_carets_and_selection", true)) {
+				if (vi_enabled) {
+					set_vi_mode(ViMode::MODE_NORMAL);
+					accept_event();
+				}
 				// Since the default shortcut is ESC, accepts the event only if it's actually performed.
 				if (_clear_carets_and_selection()) {
 					accept_event();
@@ -2170,70 +2179,70 @@ void TextEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 		k->set_shift_pressed(false);
 
 		// CARET MOVEMENT - LEFT, RIGHT.
-		if (k->is_action("ui_text_caret_word_left", true)) {
+		if (k->is_action("ui_text_caret_word_left", true) {
 			_move_caret_left(shift_pressed, true);
 			accept_event();
 			return;
 		}
-		if (k->is_action("ui_text_caret_left", true)) {
+		if (k->is_action("ui_text_caret_left", true) {
 			_move_caret_left(shift_pressed, false);
 			accept_event();
 			return;
 		}
-		if (k->is_action("ui_text_caret_word_right", true)) {
+		if (k->is_action("ui_text_caret_word_right", true) {
 			_move_caret_right(shift_pressed, true);
 			accept_event();
 			return;
 		}
-		if (k->is_action("ui_text_caret_right", true)) {
+		if (k->is_action("ui_text_caret_right", true) {
 			_move_caret_right(shift_pressed, false);
 			accept_event();
 			return;
 		}
 
 		// CARET MOVEMENT - UP, DOWN.
-		if (k->is_action("ui_text_caret_up", true)) {
+		if (k->is_action("ui_text_caret_up", true) {
 			_move_caret_up(shift_pressed);
 			accept_event();
 			return;
 		}
-		if (k->is_action("ui_text_caret_down", true)) {
+		if (k->is_action("ui_text_caret_down", true) {
 			_move_caret_down(shift_pressed);
 			accept_event();
 			return;
 		}
 
 		// CARET MOVEMENT - DOCUMENT START/END.
-		if (k->is_action("ui_text_caret_document_start", true)) { // && shift_pressed) {
+		if (k->is_action("ui_text_caret_document_start", true) {
 			_move_caret_document_start(shift_pressed);
 			accept_event();
 			return;
 		}
-		if (k->is_action("ui_text_caret_document_end", true)) { // && shift_pressed) {
+		if (k->is_action("ui_text_caret_document_end", true) {
 			_move_caret_document_end(shift_pressed);
 			accept_event();
 			return;
 		}
 
 		// CARET MOVEMENT - LINE START/END.
-		if (k->is_action("ui_text_caret_line_start", true)) {
+		if (k->is_action("ui_text_caret_line_start", true) {
 			_move_caret_to_line_start(shift_pressed);
 			accept_event();
 			return;
 		}
-		if (k->is_action("ui_text_caret_line_end", true)) {
+		if (k->is_action("ui_text_caret_line_end", true) {
 			_move_caret_to_line_end(shift_pressed);
 			accept_event();
 			return;
 		}
 
 		// CARET MOVEMENT - PAGE UP/DOWN.
-		if (k->is_action("ui_text_caret_page_up", true)) {
+		if (k->is_action("ui_text_caret_page_up", true) {
 			_move_caret_page_up(shift_pressed);
 			accept_event();
 			return;
 		}
-		if (k->is_action("ui_text_caret_page_down", true)) {
+		if (k->is_action("ui_text_caret_page_down", true) {
 			_move_caret_page_down(shift_pressed);
 			accept_event();
 			return;
@@ -4465,16 +4474,65 @@ void TextEdit::set_caret_blink_interval(const float p_interval) {
 	caret_blink_timer->set_wait_time(p_interval);
 }
 
-void TextEdit::set_draw_caret_when_editable_disabled(bool p_value) {
-	if (draw_caret_when_editable_disabled == p_value) {
+void TextEdit::set_draw_caret_when_editable_disabled(const bool p_enabled) {
+	if (draw_caret_when_editable_disabled == p_enabled) {
 		return;
 	}
-	draw_caret_when_editable_disabled = p_value;
+	draw_caret_when_editable_disabled = p_enabled;
 	queue_redraw();
 }
 
 bool TextEdit::is_drawing_caret_when_editable_disabled() const {
 	return draw_caret_when_editable_disabled;
+}
+
+void TextEdit::set_vi_enabled(const bool p_enabled) {
+	if (vi_enabled == p_enabled) {
+		return;
+	}
+	vi_enabled = p_enabled;
+	queue_redraw();
+}
+
+bool TextEdit::is_vi_enabled() const {
+	return vi_enabled;
+}
+
+void TextEdit::set_vi_mode(const int p_mode) {
+	if (vi_mode == p_mode) {
+		return;
+	}
+	vi_mode = p_mode;
+	switch (vi_mode) {
+		case ViMode::MODE_INSERT:
+			set_editable(true);
+			break;
+		case ViMode::MODE_NORMAL:
+			set_editable(false);
+			break;
+		case ViMode::MODE_VISUAL:
+			break;
+		case ViMode::MODE_COMAND:
+			break;
+	}
+	queue_redraw();
+}
+
+int TextEdit::get_vi_mode() const {
+	return vi_mode;
+}
+
+void TextEdit::handle_vi(const uint32_t &p_unicode) {
+/*
+ * Create a buffer to hold input commands.
+ * until a combination can be fulfilled, keep feeding the buffer
+ * Then do a for loop even if the count is 0, if it is, assume it's one.
+ * Jeff Venancius
+ *
+ *
+ *
+ *
+ */
 }
 
 void TextEdit::set_move_caret_on_right_click_enabled(const bool p_enabled) {
