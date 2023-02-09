@@ -4522,7 +4522,7 @@ int TextEdit::get_vi_mode() const {
 	return vi_mode;
 }
 
-void TextEdit::handle_vi(const uint32_t &p_unicode) {
+void TextEdit::handle_vi(const uint32_t p_unicode, const Vector<String> &p_text) {
 /*
  * Create a buffer to hold input commands.
  * until a combination can be fulfilled, keep feeding the buffer
@@ -4533,6 +4533,11 @@ void TextEdit::handle_vi(const uint32_t &p_unicode) {
  *
  *
  */
+	current_op.text += p_text;
+	current_op.to_column = retchar;
+	current_op.to_line = retline;
+	current_op.version = op.version;
+	current_op.end_carets = carets;
 }
 
 void TextEdit::set_move_caret_on_right_click_enabled(const bool p_enabled) {
@@ -6961,8 +6966,7 @@ void TextEdit::_push_current_op() {
 
 	undo_stack.push_back(current_op);
 	current_op.type = TextOperation::TYPE_NONE;
-	current_op.text = "";
-	current_op.chain_forward = false;
+	current_op.text = ""; current_op.chain_forward = false;
 
 	if (undo_stack.size() > undo_stack_max_size) {
 		undo_stack.pop_front();

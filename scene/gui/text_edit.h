@@ -352,6 +352,7 @@ private:
 
 	TextOperation current_op;
 	List<TextOperation> undo_stack;
+	List<TextOperation> vi_command_stack;
 	List<TextOperation>::Element *undo_stack_pos = nullptr;
 
 	Timer *idle_detect = nullptr;
@@ -864,7 +865,7 @@ public:
 	void set_vi_mode(const int p_mode);
 	int get_vi_mode() const;
 
-	void handle_vi(const uint32_t p_unicode);
+	void handle_vi(const uint32_t p_unicode, const Vector<String> &p_text);
 
 	/* Selection. */
 	void set_selecting_enabled(const bool p_enabled);
