@@ -2011,12 +2011,6 @@ void TextEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 		bool allow_unicode_handling = !(k->is_command_or_control_pressed() || k->is_ctrl_pressed() || k->is_alt_pressed() || k->is_meta_pressed());
 
 		// Check and handle all built in shortcuts.
-		
-		if (vi_mode) { // Which means not on insert mode.
-			handle_vi(k->get_unicode());
-			return;
-		}
-
 		// NEWLINES.
 		if (k->is_action("ui_text_newline_above", true)) {
 			_new_line(false, true);
@@ -2097,10 +2091,6 @@ void TextEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 				return;
 			}
 			if (k->is_action("ui_text_clear_carets_and_selection", true)) {
-				if (vi_enabled) {
-					set_vi_mode(ViMode::MODE_NORMAL);
-					accept_event();
-				}
 				// Since the default shortcut is ESC, accepts the event only if it's actually performed.
 				if (_clear_carets_and_selection()) {
 					accept_event();
@@ -4486,60 +4476,6 @@ bool TextEdit::is_drawing_caret_when_editable_disabled() const {
 	return draw_caret_when_editable_disabled;
 }
 
-void TextEdit::set_vi_enabled(const bool p_enabled) {
-	if (vi_enabled == p_enabled) {
-		return;
-	}
-	vi_enabled = p_enabled;
-	queue_redraw();
-}
-
-bool TextEdit::is_vi_enabled() const {
-	return vi_enabled;
-}
-
-void TextEdit::set_vi_mode(const int p_mode) {
-	if (vi_mode == p_mode) {
-		return;
-	}
-	vi_mode = p_mode;
-	switch (vi_mode) {
-		case ViMode::MODE_INSERT:
-			set_editable(true);
-			break;
-		case ViMode::MODE_NORMAL:
-			set_editable(false);
-			break;
-		case ViMode::MODE_VISUAL:
-			break;
-		case ViMode::MODE_COMAND:
-			break;
-	}
-	queue_redraw();
-}
-
-int TextEdit::get_vi_mode() const {
-	return vi_mode;
-}
-
-void TextEdit::handle_vi(const uint32_t p_unicode, const Vector<String> &p_text) {
-/*
- * Create a buffer to hold input commands.
- * until a combination can be fulfilled, keep feeding the buffer
- * Then do a for loop even if the count is 0, if it is, assume it's one.
- * Jeff Venancius
- *
- *
- *
- *
- */
-	current_op.text += p_text;
-	current_op.to_column = retchar;
-	current_op.to_line = retline;
-	current_op.version = op.version;
-	current_op.end_carets = carets;
-}
-
 void TextEdit::set_move_caret_on_right_click_enabled(const bool p_enabled) {
 	move_caret_on_right_click = p_enabled;
 }
@@ -6579,7 +6515,7 @@ void TextEdit::_set_symbol_lookup_word(const String &p_symbol) {
 // Overridable actions
 void TextEdit::_handle_unicode_input_internal(const uint32_t p_unicode, int p_caret) {
 	ERR_FAIL_COND(p_caret > carets.size());
-	if (!editable && !vi_mode) {
+	if (!editable) {
 		return;
 	}
 

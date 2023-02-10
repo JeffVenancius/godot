@@ -121,14 +121,6 @@ public:
 		SEARCH_BACKWARDS = 4
 	};
 
-	/* Vi mode */
-	enum ViMode {
-		MODE_INSERT,
-		MODE_NORMAL,
-		MODE_VISUAL,
-		MODE_COMAND,
-	};
-
 private:
 	struct GutterInfo {
 		GutterType type = GutterType::GUTTER_TYPE_STRING;
@@ -447,10 +439,6 @@ private:
 	void _toggle_draw_caret();
 
 	int _get_column_x_offset_for_line(int p_char, int p_line, int p_column) const;
-
-	/* Vi mode */
-	/* bool vi_enabled = false; // So esc can leave insert mode. */
-	/* ViMode vi_mode = ViMode::MODE_INSERT; */
 
 	/* Selection. */
 	SelectionMode selecting_mode = SelectionMode::SELECTION_MODE_NONE;
@@ -857,15 +845,6 @@ public:
 
 	String get_word_under_caret(int p_caret = -1) const;
 
-	/* /1* Vi mode *1/ */
-	/* void set_vi_enabled(const bool p_enabled); */
-	/* bool is_vi_enabled() const; */
-
-	/* void set_vi_mode(const int p_mode); */
-	/* int get_vi_mode() const; */
-
-	/* void handle_vi(const uint32_t p_unicode, const Vector<String> &p_text); */
-
 	/* Selection. */
 	void set_selecting_enabled(const bool p_enabled);
 	bool is_selecting_enabled() const;
@@ -1037,7 +1016,6 @@ public:
 
 VARIANT_ENUM_CAST(TextEdit::EditAction);
 VARIANT_ENUM_CAST(TextEdit::CaretType);
-VARIANT_ENUM_CAST(TextEdit::ViMode);
 VARIANT_ENUM_CAST(TextEdit::LineWrappingMode);
 VARIANT_ENUM_CAST(TextEdit::SelectionMode);
 VARIANT_ENUM_CAST(TextEdit::GutterType);
