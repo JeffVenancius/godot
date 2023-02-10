@@ -352,7 +352,6 @@ private:
 
 	TextOperation current_op;
 	List<TextOperation> undo_stack;
-	List<TextOperation> vi_command_stack;
 	List<TextOperation>::Element *undo_stack_pos = nullptr;
 
 	Timer *idle_detect = nullptr;
@@ -450,8 +449,8 @@ private:
 	int _get_column_x_offset_for_line(int p_char, int p_line, int p_column) const;
 
 	/* Vi mode */
-	bool vi_enabled = false; // So esc can leave insert mode.
-	ViMode vi_mode = ViMode::MODE_INSERT;
+	/* bool vi_enabled = false; // So esc can leave insert mode. */
+	/* ViMode vi_mode = ViMode::MODE_INSERT; */
 
 	/* Selection. */
 	SelectionMode selecting_mode = SelectionMode::SELECTION_MODE_NONE;
@@ -858,14 +857,14 @@ public:
 
 	String get_word_under_caret(int p_caret = -1) const;
 
-	/* Vi mode */
-	void set_vi_enabled(const bool p_enabled);
-	bool is_vi_enabled() const;
+	/* /1* Vi mode *1/ */
+	/* void set_vi_enabled(const bool p_enabled); */
+	/* bool is_vi_enabled() const; */
 
-	void set_vi_mode(const int p_mode);
-	int get_vi_mode() const;
+	/* void set_vi_mode(const int p_mode); */
+	/* int get_vi_mode() const; */
 
-	void handle_vi(const uint32_t p_unicode, const Vector<String> &p_text);
+	/* void handle_vi(const uint32_t p_unicode, const Vector<String> &p_text); */
 
 	/* Selection. */
 	void set_selecting_enabled(const bool p_enabled);

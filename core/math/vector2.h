@@ -125,6 +125,8 @@ struct _NO_DISCARD_ Vector2 {
 	bool is_finite() const;
 
 	Vector2 operator+(const Vector2 &p_v) const;
+	Vector2 operator+(const int32_t &p_i) const;
+	Vector2 operator+(const int64_t &p_i) const;
 	void operator+=(const Vector2 &p_v);
 	Vector2 operator-(const Vector2 &p_v) const;
 	void operator-=(const Vector2 &p_v);
@@ -187,6 +189,14 @@ _FORCE_INLINE_ Vector2 Vector2::plane_project(const real_t p_d, const Vector2 &p
 
 _FORCE_INLINE_ Vector2 Vector2::operator+(const Vector2 &p_v) const {
 	return Vector2(x + p_v.x, y + p_v.y);
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator+(const int32_t &p_i) const {
+	return Vector2(x + p_i, y + p_i);
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator+(const int64_t &p_i) const {
+	return Vector2(x + p_i, y + p_i);
 }
 
 _FORCE_INLINE_ void Vector2::operator+=(const Vector2 &p_v) {
