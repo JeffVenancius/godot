@@ -2137,7 +2137,7 @@ bool TextEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
 		}
 
 		else if(editable && duplicated_key->get_unicode() >= 32) {
-			bool allow_unicode_handling = !(duplicated_key->is_command_or_control_pressed() || duplicated_key->is_ctrl_pressed() || duplicated_key->is_alt_pressed() || duplicated_key->is_meta_pressed());
+			bool allow_unicode_handling = !(p_key->is_command_or_control_pressed() || p_key->is_ctrl_pressed() || p_key->is_alt_pressed() || p_key->is_meta_pressed());
 			if (allow_unicode_handling) handle_unicode_input(duplicated_key->get_unicode());
 			else keep_going = true;
 		}
