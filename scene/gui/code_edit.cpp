@@ -274,7 +274,7 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 	double prev_h_scroll = get_h_scroll();
 
 	if (handle_gui_mouse_button(Ref<InputEventMouseButton>(p_gui_input))) return;
-	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input))) return;
+	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input), prev_v_scroll, prev_h_scroll)) return;
 	else if (handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_gui_input))) return;
 
 	TextEdit::handle_gui_input_misc(prev_v_scroll, prev_h_scroll);

@@ -1667,7 +1667,7 @@ void TextEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 	double prev_h_scroll = get_h_scroll();
 
 	if (handle_gui_mouse_button(Ref<InputEventMouseButton>(p_gui_input))) return;
-	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input))) return;
+	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input), prev_v_scroll, prev_h_scroll)) return;
 	else if (handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_gui_input))) return;
 
 	handle_gui_input_misc(prev_v_scroll, prev_h_scroll);
@@ -1921,10 +1921,7 @@ bool TextEdit::handle_gui_mouse_button(const Ref<InputEventMouseButton> &p_mouse
 	return false;
 }
 
-bool TextEdit::handle_gui_pan_gesture(const Ref<InputEventPanGesture> &p_pan_gesture) {
-	double prev_v_scroll = get_v_scroll();
-	double prev_h_scroll = get_h_scroll();
-
+bool TextEdit::handle_gui_pan_gesture(const Ref<InputEventPanGesture> &p_pan_gesture, const double &p_prev_v_scroll, const double &p_prev_h_scroll) {
 	if (p_pan_gesture.is_valid()) {
 		const real_t delta = p_pan_gesture->get_delta().y;
 		if (delta < 0) {
@@ -1933,7 +1930,7 @@ bool TextEdit::handle_gui_pan_gesture(const Ref<InputEventPanGesture> &p_pan_ges
 			_scroll_down(delta);
 		}
 		h_scroll->set_value(get_h_scroll() + p_pan_gesture->get_delta().x * 100);
-		if (get_v_scroll() != prev_v_scroll || get_h_scroll() != prev_h_scroll) {
+		if (get_v_scroll() != p_prev_v_scroll || get_h_scroll() != p_prev_h_scroll) {
 			accept_event(); // Accept event if scroll changed.
 		}
 

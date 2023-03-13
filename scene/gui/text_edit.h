@@ -680,9 +680,9 @@ public:
 	virtual void unhandled_key_input(const Ref<InputEvent> &p_event) override;
 	virtual void gui_input(const Ref<InputEvent> &p_gui_input) override;
 	virtual bool handle_gui_mouse_button(const Ref<InputEventMouseButton> &p_mouse_button);
-	virtual bool handle_gui_pan_gesture(const Ref<InputEventPanGesture> &p_pan_gesture);
+	virtual bool handle_gui_pan_gesture(const Ref<InputEventPanGesture> &p_pan_gesture, const double &p_prev_v_scroll, const double &p_prev_h_scroll);
 	virtual bool handle_gui_mouse_motion(const Ref<InputEventMouseMotion> &p_mouse_motion);
-	void handle_gui_input_misc(const double & p_prev_v_scroll, const double &p_prev_h_scroll);
+	void handle_gui_input_misc(const double &p_prev_v_scroll, const double &p_prev_h_scroll);
 	virtual bool handle_gui_key(const Ref<InputEventKey> &p_key);
 
 
