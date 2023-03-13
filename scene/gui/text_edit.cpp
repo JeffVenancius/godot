@@ -1666,9 +1666,12 @@ void TextEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 	double prev_v_scroll = get_v_scroll();
 	double prev_h_scroll = get_h_scroll();
 
-	if (handle_gui_mouse_button(Ref<InputEventMouseButton>(p_gui_input))) return;
-	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input), prev_v_scroll, prev_h_scroll)) return;
-	else if (handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_gui_input))) return;
+	if (handle_gui_mouse_button(Ref<InputEventMouseButton>(p_gui_input)))
+		return;
+	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input), prev_v_scroll, prev_h_scroll))
+		return;
+	else if (handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_gui_input)))
+		return;
 
 	handle_gui_input_misc(prev_v_scroll, prev_h_scroll);
 	handle_gui_key(Ref<InputEventKey>(p_gui_input));
@@ -1715,7 +1718,7 @@ bool TextEdit::handle_gui_mouse_button(const Ref<InputEventMouseButton> &p_mouse
 				/* h_scroll->set_value(get_h_scroll() - (100 * p_mouse_button->get_factor())); */
 			}
 			if (p_mouse_button->get_button_index() == MouseButton::WHEEL_RIGHT) {
-					set_h_scroll(get_h_scroll() + (100 * p_mouse_button->get_factor()));
+				set_h_scroll(get_h_scroll() + (100 * p_mouse_button->get_factor()));
 				/* h_scroll->set_value(get_h_scroll() + (100 * p_mouse_button->get_factor())); */
 			}
 			if (p_mouse_button->get_button_index() == MouseButton::LEFT) {
@@ -2009,8 +2012,10 @@ bool TextEdit::handle_gui_mouse_motion(const Ref<InputEventMouseMotion> &p_mouse
 }
 
 void TextEdit::handle_gui_input_misc(const double &p_prev_v_scroll, const double &p_prev_h_scroll) {
-	if (draw_minimap && !dragging_selection) _update_minimap_hover();
-	if (get_v_scroll() != p_prev_v_scroll || get_h_scroll() != p_prev_h_scroll) accept_event(); // Accept event if scroll changed.
+	if (draw_minimap && !dragging_selection)
+		_update_minimap_hover();
+	if (get_v_scroll() != p_prev_v_scroll || get_h_scroll() != p_prev_h_scroll)
+		accept_event(); // Accept event if scroll changed.
 }
 bool TextEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
 	bool keep_going = false;

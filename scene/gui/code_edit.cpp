@@ -273,17 +273,18 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 	double prev_v_scroll = get_v_scroll();
 	double prev_h_scroll = get_h_scroll();
 
-	if (handle_gui_mouse_button(Ref<InputEventMouseButton>(p_gui_input))) return;
-	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input), prev_v_scroll, prev_h_scroll)) return;
-	else if (handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_gui_input))) return;
+	if (handle_gui_mouse_button(Ref<InputEventMouseButton>(p_gui_input)))
+		return;
+	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input), prev_v_scroll, prev_h_scroll))
+		return;
+	else if (handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_gui_input)))
+		return;
 
 	TextEdit::handle_gui_input_misc(prev_v_scroll, prev_h_scroll);
 
-	if (handle_gui_key(Ref<InputEventKey>(p_gui_input))) return;
-
+	if (handle_gui_key(Ref<InputEventKey>(p_gui_input)))
+		return;
 }
-
-
 
 bool CodeEdit::handle_gui_mouse_button(const Ref<InputEventMouseButton> &p_mouse_button) {
 	if (p_mouse_button.is_valid()) {
@@ -405,7 +406,8 @@ bool CodeEdit::handle_gui_mouse_button(const Ref<InputEventMouseButton> &p_mouse
 			}
 		}
 	}
-	if (TextEdit::handle_gui_mouse_button(Ref<InputEventMouseButton>(p_mouse_button))) return true;
+	if (TextEdit::handle_gui_mouse_button(Ref<InputEventMouseButton>(p_mouse_button)))
+		return true;
 	return false;
 }
 
@@ -447,7 +449,6 @@ bool CodeEdit::handle_gui_mouse_motion(const Ref<InputEventMouseMotion> &p_mouse
 			return;
 		}
 	}
-<<<<<<< HEAD
 
 	Ref<InputEventKey> k = p_gui_input;
 	if (TextEdit::alt_input(p_gui_input)) {
@@ -634,10 +635,9 @@ bool CodeEdit::handle_gui_mouse_motion(const Ref<InputEventMouseMotion> &p_mouse
 	if (update_code_completion) {
 		_filter_code_completion_candidates_impl();
 	}
-=======
-	if (TextEdit::handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_mouse_motion))) return true;
+	if (TextEdit::handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_mouse_motion)))
+		return true;
 	return false;
->>>>>>> d92e687689 (refactorinf CodeEdit)
 }
 
 bool CodeEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
@@ -648,25 +648,72 @@ bool CodeEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
 #ifdef MACOS_ENABLED
 		if (p_key->get_keycode() == Key::META) {
 #else
-			if (p_key->get_keycode() == Key::CTRL) {
+		if (p_key->get_keycode() == Key::CTRL) {
 #endif
-				if (symbol_lookup_on_click_enabled) {
-					if (p_key->is_pressed() && !is_dragging_cursor()) {
-						symbol_lookup_new_word = get_word_at_pos(get_local_mouse_pos());
-						if (symbol_lookup_new_word != symbol_lookup_word) {
-							emit_signal(SNAME("symbol_validate"), symbol_lookup_new_word);
-						}
-					} else {
-						set_symbol_lookup_word_as_valid(false);
+			if (symbol_lookup_on_click_enabled) {
+				if (p_key->is_pressed() && !is_dragging_cursor()) {
+					symbol_lookup_new_word = get_word_at_pos(get_local_mouse_pos());
+					if (symbol_lookup_new_word != symbol_lookup_word) {
+						emit_signal(SNAME("symbol_validate"), symbol_lookup_new_word);
 					}
+				} else {
+					set_symbol_lookup_word_as_valid(false);
 				}
 			}
+		}
 
-				/* If a modifier has been pressed, and nothing else, return true. */
-				else if (!p_key->is_pressed() || p_key->get_keycode() == Key::CTRL || p_key->get_keycode() == Key::ALT || p_key->get_keycode() == Key::SHIFT || p_key->get_keycode() == Key::META) {}
-				else keep_going = true;
+		/* If a modifier has been pressed, and nothing else, return true. */
+		else if (!p_key->is_pressed() || p_key->get_keycode() == Key::CTRL || p_key->get_keycode() == Key::ALT || p_key->get_keycode() == Key::SHIFT || p_key->get_keycode() == Key::META) {
+		} else
+			keep_going = true;
 
-			if (!keep_going) return true;
+		if (!keep_going)
+			return true;
+		keep_going = false;
+
+		/* Allow unicode handling if:              */
+		/* No Modifiers are pressed (except shift) */
+		bool allow_unicode_handling = !(p_key->is_command_or_control_pressed() || p_key->is_ctrl_pressed() || p_key->is_alt_pressed() || p_key->is_meta_pressed());
+
+		/* AUTO-COMPLETE */
+		if (code_completion_enabled && p_key->is_action("ui_text_completion_query", true)) {
+			request_code_completion(true);
+			accept_event();
+			return true;
+		}
+
+		if (code_completion_active) {
+			{
+				if (p_key->is_action("ui_up", true)) {
+					if (code_completion_current_selected > 0)
+						code_completion_current_selected--;
+					else
+						code_completion_current_selected = code_completion_options.size() - 1;
+				} else if (p_key->is_action("ui_down", true)) {
+					if (code_completion_current_selected < code_completion_options.size() - 1) {
+						code_completion_current_selected++;
+					} else {
+						code_completion_current_selected = 0;
+					}
+				} else if (p_key->is_action("ui_page_up", true))
+					code_completion_current_selected = MAX(0, code_completion_current_selected - code_completion_max_lines);
+				else if (p_key->is_action("ui_page_down", true))
+					code_completion_current_selected = MIN(code_completion_options.size() - 1, code_completion_current_selected + code_completion_max_lines);
+				else if (p_key->is_action("ui_home", true))
+					code_completion_current_selected = 0;
+				else if (p_key->is_action("ui_end", true))
+					code_completion_current_selected = code_completion_options.size() - 1;
+				else
+					keep_going = true;
+			}
+
+			if (!keep_going) {
+				code_completion_force_item_center = -1;
+				queue_redraw();
+				accept_event();
+				return true;
+			}
+
 			keep_going = false;
 
 			/* Allow unicode handling if:              */
@@ -744,18 +791,20 @@ bool CodeEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
 			}
 
 			if (allow_unicode_handling && p_key->get_unicode() == ')') set_code_hint("");
-
 			{
-				/* Indentation */
-				if (p_key->is_action("ui_text_indent", true)) do_indent();
+				if (p_key->is_action("ui_text_completion_replace", true) ||
+						p_key->is_action("ui_text_completion_accept", true))
+					confirm_code_completion(p_key->is_action("ui_text_completion_replace", true));
+				else if (p_key->is_action("ui_cancel", true))
+					cancel_code_completion();
 
-				else if (p_key->is_action("ui_text_dedent", true)) unindent_lines();
+				else if (p_key->is_action("ui_text_backspace", true)) {
+					backspace();
+					_filter_code_completion_candidates_impl();
+				}
 
-				// Override new line actions, for auto indent
-				else if (p_key->is_action("ui_text_newline_above", true)) _new_line(false, true);
-				else if (p_key->is_action("ui_text_newline_blank", true)) _new_line(false);
-				else if (p_key->is_action("ui_text_newline", true)) _new_line();
-				else keep_going = true;
+				else
+					keep_going = true;
 			}
 
 			if (!keep_going) {
@@ -765,25 +814,72 @@ bool CodeEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
 
 			keep_going = false;
 
-			/* Remove shift otherwise actions will not match. */
-			Ref<InputEventKey> duplicated_key = p_key->duplicate();
-			duplicated_key->set_shift_pressed(false);
+			if (p_key->is_action("ui_left", true) ||
+					p_key->is_action("ui_right", true))
+				update_code_completion = true;
+			else
+				update_code_completion = (allow_unicode_handling && p_key->get_unicode() >= 32);
 
-			if (duplicated_key->is_action("ui_text_caret_up", true) ||
-					duplicated_key->is_action("ui_text_caret_down", true) ||
-					duplicated_key->is_action("ui_text_caret_line_start", true) ||
-					duplicated_key->is_action("ui_text_caret_line_end", true) ||
-					duplicated_key->is_action("ui_text_caret_page_up", true) ||
-					duplicated_key->is_action("ui_text_caret_page_down", true)) {
-				set_code_hint("");
-			}
-
-			TextEdit::handle_gui_key(Ref<InputEventKey>(p_key));
-
-			if (update_code_completion) _filter_code_completion_candidates_impl();
+			if (!update_code_completion)
+				cancel_code_completion();
 		}
-		return false;
+
+		/* MISC */
+		if (!code_hint.is_empty() && p_key->is_action("ui_cancel", true)) {
+			set_code_hint("");
+			accept_event();
+			return true;
+		}
+
+		if (allow_unicode_handling && p_key->get_unicode() == ')')
+			set_code_hint("");
+
+		{
+			/* Indentation */
+			if (p_key->is_action("ui_text_indent", true))
+				do_indent();
+
+			else if (p_key->is_action("ui_text_dedent", true))
+				unindent_lines();
+
+			// Override new line actions, for auto indent
+			else if (p_key->is_action("ui_text_newline_above", true))
+				_new_line(false, true);
+			else if (p_key->is_action("ui_text_newline_blank", true))
+				_new_line(false);
+			else if (p_key->is_action("ui_text_newline", true))
+				_new_line();
+			else
+				keep_going = true;
+		}
+
+		if (!keep_going) {
+			accept_event();
+			return true;
+		}
+
+		keep_going = false;
+
+		/* Remove shift otherwise actions will not match. */
+		Ref<InputEventKey> duplicated_key = p_key->duplicate();
+		duplicated_key->set_shift_pressed(false);
+
+		if (duplicated_key->is_action("ui_text_caret_up", true) ||
+				duplicated_key->is_action("ui_text_caret_down", true) ||
+				duplicated_key->is_action("ui_text_caret_line_start", true) ||
+				duplicated_key->is_action("ui_text_caret_line_end", true) ||
+				duplicated_key->is_action("ui_text_caret_page_up", true) ||
+				duplicated_key->is_action("ui_text_caret_page_down", true)) {
+			set_code_hint("");
+		}
+
+		TextEdit::handle_gui_key(Ref<InputEventKey>(p_key));
+
+		if (update_code_completion)
+			_filter_code_completion_candidates_impl();
 	}
+	return false;
+}
 
 /* General overrides */
 Control::CursorShape CodeEdit::get_cursor_shape(const Point2 &p_pos) const {

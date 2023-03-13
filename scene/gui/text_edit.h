@@ -685,7 +685,6 @@ public:
 	void handle_gui_input_misc(const double &p_prev_v_scroll, const double &p_prev_h_scroll);
 	virtual bool handle_gui_key(const Ref<InputEventKey> &p_key);
 
-
 	bool alt_input(const Ref<InputEvent> &p_gui_input);
 	virtual Size2 get_minimum_size() const override;
 	virtual bool is_text_field() const override;
