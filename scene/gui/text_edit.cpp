@@ -1,3 +1,4 @@
+
 /**************************************************************************/
 /*  text_edit.cpp                                                         */
 /**************************************************************************/
@@ -1667,12 +1668,15 @@ void TextEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 	double prev_v_scroll = get_v_scroll();
 	double prev_h_scroll = get_h_scroll();
 
-	if (handle_gui_mouse_button(Ref<InputEventMouseButton>(p_gui_input)))
+	if (handle_gui_mouse_button(Ref<InputEventMouseButton>(p_gui_input))) {
 		return;
-	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input), prev_v_scroll, prev_h_scroll))
+	}
+	else if (handle_gui_pan_gesture(Ref<InputEventPanGesture>(p_gui_input), prev_v_scroll, prev_h_scroll)) {
 		return;
-	else if (handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_gui_input)))
+	}
+	else if (handle_gui_mouse_motion(Ref<InputEventMouseMotion>(p_gui_input))) {
 		return;
+	}
 
 	handle_gui_input_misc(prev_v_scroll, prev_h_scroll);
 	handle_gui_key(Ref<InputEventKey>(p_gui_input));
@@ -1690,38 +1694,58 @@ bool TextEdit::handle_gui_mouse_button(const Ref<InputEventMouseButton> &p_mouse
 		}
 
 		if (p_mouse_button->is_pressed()) {
-			if (p_mouse_button->get_button_index() == MouseButton::WHEEL_UP && !p_mouse_button->is_command_or_control_pressed()) {
-				if (p_mouse_button->is_shift_pressed()) {
-					set_h_scroll(get_h_scroll() - (100 * p_mouse_button->get_factor()));
-					/* h_scroll->set_value(get_h_scroll() - (100 * p_mouse_button->get_factor())); */
-				} else if (p_mouse_button->is_alt_pressed()) {
-					// Scroll 5 times as fast as normal (like in Visual Studio Code).
-					_scroll_up(15 * p_mouse_button->get_factor());
-				} else if (v_scroll->is_visible()) {
-					// Scroll 3 lines.
-					_scroll_up(3 * p_mouse_button->get_factor());
+			int scroll_to = 0;
+			bool vertical_scroll = false;
+
+			switch (p_mouse_button->get_button_index()) {
+				case MouseButton::WHEEL_UP:
+				case MouseButton::WHEEL_DOWN: {
+					vertical_scroll = !p_mouse_button->is_command_or_control_pressed();
+					break;
+				}
+				default: {
+					break;
 				}
 			}
-			if (p_mouse_button->get_button_index() == MouseButton::WHEEL_DOWN && !p_mouse_button->is_command_or_control_pressed()) {
-				if (p_mouse_button->is_shift_pressed()) {
-					set_h_scroll(get_h_scroll() + (100 * p_mouse_button->get_factor()));
-					/* h_scroll->set_value(get_h_scroll() + (100 * p_mouse_button->get_factor())); */
-				} else if (p_mouse_button->is_alt_pressed()) {
-					// Scroll 5 times as fast as normal (like in Visual Studio Code).
-					_scroll_down(15 * p_mouse_button->get_factor());
-				} else if (v_scroll->is_visible()) {
-					// Scroll 3 lines.
-					_scroll_down(3 * p_mouse_button->get_factor());
+
+			switch (p_mouse_button->get_button_index()) {
+				case MouseButton::WHEEL_UP:
+				case MouseButton::WHEEL_LEFT: { // inverted logic here so it doesn't need to invert later.
+					scroll_to = 1;
+					break;
+				}
+				case MouseButton::WHEEL_DOWN:
+				case MouseButton::WHEEL_RIGHT: {
+					scroll_to = -1;
+					break;
+				}
+				default: {
+					break;
 				}
 			}
-			if (p_mouse_button->get_button_index() == MouseButton::WHEEL_LEFT) {
-				set_h_scroll(get_h_scroll() - (100 * p_mouse_button->get_factor()));
-				/* h_scroll->set_value(get_h_scroll() - (100 * p_mouse_button->get_factor())); */
+
+			if (scroll_to) {
+				int scroll_speed = 100;
+				if (vertical_scroll) {
+					if (p_mouse_button->is_alt_pressed()) {
+						scroll_speed = 15; // Scroll 5 times as fast as normal (like in Visual Studio Code).
+					} else if (v_scroll->is_visible()) {
+							scroll_speed = 3; // Scroll 3 lines.
+					}
+					if (p_mouse_button->is_shift_pressed()) {
+						h_scroll->set_value(get_h_scroll() - ((scroll_speed * p_mouse_button->get_factor()) * scroll_to ));
+					} else if (scroll_speed < 100) {
+						if (scroll_to > 0) {
+							_scroll_up(scroll_speed * p_mouse_button->get_factor());
+						} else {
+							_scroll_down(scroll_speed * p_mouse_button->get_factor());
+						}
+					}
+				} else {
+					h_scroll->set_value(get_h_scroll() - ((scroll_speed * p_mouse_button->get_factor()) * scroll_to ));
+				}
 			}
-			if (p_mouse_button->get_button_index() == MouseButton::WHEEL_RIGHT) {
-				set_h_scroll(get_h_scroll() + (100 * p_mouse_button->get_factor()));
-				/* h_scroll->set_value(get_h_scroll() + (100 * p_mouse_button->get_factor())); */
-			}
+
 			if (p_mouse_button->get_button_index() == MouseButton::LEFT) {
 				_reset_caret_blink_timer();
 
@@ -1933,7 +1957,7 @@ bool TextEdit::handle_gui_pan_gesture(const Ref<InputEventPanGesture> &p_pan_ges
 		} else {
 			_scroll_down(delta);
 		}
-		h_scroll->set_value(get_h_scroll() + p_pan_gesture->get_delta().x * 100);
+		h_scroll->set_value(h_scroll->get_value() + p_pan_gesture->get_delta().x * 100);
 		if (get_v_scroll() != p_prev_v_scroll || get_h_scroll() != p_prev_h_scroll) {
 			accept_event(); // Accept event if scroll changed.
 		}
@@ -2013,27 +2037,29 @@ bool TextEdit::handle_gui_mouse_motion(const Ref<InputEventMouseMotion> &p_mouse
 }
 
 void TextEdit::handle_gui_input_misc(const double &p_prev_v_scroll, const double &p_prev_h_scroll) {
-	if (draw_minimap && !dragging_selection)
+	if (draw_minimap && !dragging_selection) {
 		_update_minimap_hover();
-	if (get_v_scroll() != p_prev_v_scroll || get_h_scroll() != p_prev_h_scroll)
+	}
+	if (get_v_scroll() != p_prev_v_scroll || get_h_scroll() != p_prev_h_scroll) {
 		accept_event(); // Accept event if scroll changed.
+	}
 }
+
 bool TextEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
 	bool keep_going = false;
 	if (p_key.is_valid()) {
-		if (alt_input(p_key))
+		if (alt_input(p_key)) {
 			accept_event();
-		else if (!p_key->is_pressed()) {
 		}
-		// If a modifier has been pressed, and nothing else, return.
-		else if (p_key->get_keycode() == Key::CTRL || p_key->get_keycode() == Key::ALT || p_key->get_keycode() == Key::SHIFT || p_key->get_keycode() == Key::META) {
-		}
-
-		else
+		// If nothing was pressed or if only modifier key was, avoid the keep_going flag and return.
+		else if (!p_key->is_pressed() || p_key->get_keycode() == Key::CTRL || p_key->get_keycode() == Key::ALT || p_key->get_keycode() == Key::SHIFT || p_key->get_keycode() == Key::META || p_key->get_keycode() == Key::CAPSLOCK) {
+		} else {
 			keep_going = true;
+		}
 
-		if (!keep_going)
+		if (!keep_going) {
 			return true;
+		}
 
 		keep_going = false;
 		_reset_caret_blink_timer();
@@ -2041,65 +2067,69 @@ bool TextEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
 		// Check and handle all built in shortcuts.
 
 		// NEWLINES.
-		if (p_key->is_action("ui_text_newline_above", true))
+		if (p_key->is_action("ui_text_newline_above", true)) {
 			_new_line(false, true);
-		else if (p_key->is_action("ui_text_newline_blank", true))
+		} else if (p_key->is_action("ui_text_newline_blank", true)) {
 			_new_line(false);
-		else if (p_key->is_action("ui_text_newline", true))
+		} else if (p_key->is_action("ui_text_newline", true)) {
 			_new_line();
+		}
 
 		// BACKSPACE AND DELETE.
-		else if (p_key->is_action("ui_text_backspace_all_to_left", true))
+		else if (p_key->is_action("ui_text_backspace_all_to_left", true)) {
 			_do_backspace(false, true);
-		else if (p_key->is_action("ui_text_backspace_word", true))
+		} else if (p_key->is_action("ui_text_backspace_word", true)) {
 			_do_backspace(true);
-		else if (p_key->is_action("ui_text_backspace", true))
+		} else if (p_key->is_action("ui_text_backspace", true)) {
 			_do_backspace();
-		else if (p_key->is_action("ui_text_delete_all_to_right", true))
+		} else if (p_key->is_action("ui_text_delete_all_to_right", true)) {
 			_delete(false, true);
-		else if (p_key->is_action("ui_text_delete_word", true))
+		} else if (p_key->is_action("ui_text_delete_word", true)) {
 			_delete(true);
-		else if (p_key->is_action("ui_text_delete", true))
+		} else if (p_key->is_action("ui_text_delete", true)) {
 			_delete();
-
+		}
 		// SCROLLING.
-		else if (p_key->is_action("ui_text_scroll_up", true))
+		else if (p_key->is_action("ui_text_scroll_up", true)) {
 			_scroll_lines_up();
-		else if (p_key->is_action("ui_text_scroll_down", true))
+		} else if (p_key->is_action("ui_text_scroll_down", true)) {
 			_scroll_lines_down();
+		}
 
 		else if (is_shortcut_keys_enabled()) {
 			// SELECT ALL, SELECT WORD UNDER CARET, ADD SELECTION FOR NEXT OCCURRENCE,
 			// CLEAR CARETS AND SELECTIONS, CUT, COPY, PASTE.
-			if (p_key->is_action("ui_text_select_all", true))
+			if (p_key->is_action("ui_text_select_all", true)) {
 				select_all();
-			else if (p_key->is_action("ui_text_select_word_under_caret", true))
-				select_word_under_caret();
-			else if (p_key->is_action("ui_text_add_selection_for_next_occurrence", true))
-				add_selection_for_next_occurrence();
-			else if (p_key->is_action("ui_text_clear_carets_and_selection", true)) {
+			} else if (p_key->is_action("ui_text_select_word_under_caret", true)) {
+					select_word_under_caret();
+			} else if (p_key->is_action("ui_text_add_selection_for_next_occurrence", true)) {
+					add_selection_for_next_occurrence();
+			} else if (p_key->is_action("ui_text_clear_carets_and_selection", true)) {
 				// Since the default shortcut is ESC, accepts the event only else if it's actually performed.
-				if (!_clear_carets_and_selection())
+				if (!_clear_carets_and_selection()) {
 					keep_going = true;
-			} else if (p_key->is_action("ui_cut", true))
-				cut();
-			else if (p_key->is_action("ui_copy", true))
-				copy();
-			else if (p_key->is_action("ui_paste", true))
-				paste();
+				}
+			} else if (p_key->is_action("ui_cut", true)) {
+					cut();
+			} else if (p_key->is_action("ui_copy", true)) {
+					copy();
+			} else if (p_key->is_action("ui_paste", true)) {
+					paste();
+			}
 
-			// UNDO/REDO.
-			else if (p_key->is_action("ui_undo", true))
-				undo();
-			else if (p_key->is_action("ui_redo", true))
-				redo();
-
-			else if (p_key->is_action("ui_text_caret_add_below", true))
-				add_caret_at_carets(true);
-			else if (p_key->is_action("ui_text_caret_add_above", true))
-				add_caret_at_carets(false);
-			else
+				// UNDO/REDO.
+				else if (p_key->is_action("ui_undo", true)) {
+					undo();
+			} else if (p_key->is_action("ui_redo", true)) {
+					redo();
+			} else if (p_key->is_action("ui_text_caret_add_below", true)) {
+					add_caret_at_carets(true);
+			} else if (p_key->is_action("ui_text_caret_add_above", true)) {
+					add_caret_at_carets(false);
+			} else {
 				keep_going = true;
+			}
 		}
 
 		// MISC.
@@ -2112,153 +2142,87 @@ bool TextEdit::handle_gui_key(const Ref<InputEventKey> &p_key) {
 				menu->popup();
 				menu->grab_focus();
 			}
-		} else
-			keep_going = true;
-
-		if (!keep_going) {
-			accept_event();
-			return true;
-		}
-
-		// Don't know why I have to do this yet.
-		keep_going = false;
-		if (p_key->is_action("ui_text_toggle_insert_mode", true))
+		} else if (p_key->is_action("ui_text_toggle_insert_mode", true)) {
 			set_overtype_mode_enabled(!overtype_mode);
-		else if (p_key->is_action("ui_swap_input_direction", true))
+		} else if (p_key->is_action("ui_swap_input_direction", true)) {
 			_swap_current_input_direction();
-		else
+		} else {
 			keep_going = true;
+		}
 
 		if (!keep_going) {
 			accept_event();
 			return true;
 		}
+		keep_going = false;
 
 		// CARET MOVEMENT
 
-		keep_going = false;
 		Ref<InputEventKey> duplicated_key = p_key->duplicate();
 		bool shift_pressed = duplicated_key->is_shift_pressed();
 		// Remove shift or else actions will not match. Use above variable for selection.
 		duplicated_key->set_shift_pressed(false);
 
 		// CARET MOVEMENT - LEFT, RIGHT.
-		if (duplicated_key->is_action("ui_text_caret_word_left", true))
+		if (duplicated_key->is_action("ui_text_caret_word_left", true)) {
 			_move_caret_left(shift_pressed, true);
-		else if (duplicated_key->is_action("ui_text_caret_left", true))
+		} else if (duplicated_key->is_action("ui_text_caret_left", true)) {
 			_move_caret_left(shift_pressed, false);
-		else if (duplicated_key->is_action("ui_text_caret_word_right", true))
+		} else if (duplicated_key->is_action("ui_text_caret_word_right", true)) {
 			_move_caret_right(shift_pressed, true);
-		else if (duplicated_key->is_action("ui_text_caret_right", true))
+		} else if (duplicated_key->is_action("ui_text_caret_right", true)) {
 			_move_caret_right(shift_pressed, false);
+		}
 
 		// CARET MOVEMENT - UP, DOWN.
-		else if (duplicated_key->is_action("ui_text_caret_up", true))
+		else if (duplicated_key->is_action("ui_text_caret_up", true)) {
 			_move_caret_up(shift_pressed);
-		else if (duplicated_key->is_action("ui_text_caret_down", true))
+		} else if (duplicated_key->is_action("ui_text_caret_down", true)) {
 			_move_caret_down(shift_pressed);
+		}
 
 		// CARET MOVEMENT - DOCUMENT START/END.
-		else if (duplicated_key->is_action("ui_text_caret_document_start", true))
+		else if (duplicated_key->is_action("ui_text_caret_document_start", true)) {
 			_move_caret_document_start(shift_pressed);
-		else if (duplicated_key->is_action("ui_text_caret_document_end", true))
+		} else if (duplicated_key->is_action("ui_text_caret_document_end", true)) {
 			_move_caret_document_end(shift_pressed);
+		}
 
 		// CARET MOVEMENT - LINE START/END.
-		else if (duplicated_key->is_action("ui_text_caret_line_start", true))
+		else if (duplicated_key->is_action("ui_text_caret_line_start", true)) {
 			_move_caret_to_line_start(shift_pressed);
-		else if (duplicated_key->is_action("ui_text_caret_line_end", true))
+		} else if (duplicated_key->is_action("ui_text_caret_line_end", true)) {
 			_move_caret_to_line_end(shift_pressed);
+		}
 
 		// CARET MOVEMENT - PAGE UP/DOWN.
-		else if (duplicated_key->is_action("ui_text_caret_page_up", true))
+		else if (duplicated_key->is_action("ui_text_caret_page_up", true)) {
 			_move_caret_page_up(shift_pressed);
-		else if (duplicated_key->is_action("ui_text_caret_page_down", true))
+		} else if (duplicated_key->is_action("ui_text_caret_page_down", true)) {
 			_move_caret_page_down(shift_pressed);
+		}
 
 		// Handle tab as it has no set unicode value.
 		else if (duplicated_key->is_action("ui_text_indent", true)) {
-			if (editable)
+			if (editable) {
 				insert_text_at_caret("\t");
-		}
-
-		else if (editable && duplicated_key->get_unicode() >= 32) {
+			}
+		} else if (editable && duplicated_key->get_unicode() >= 32) {
 			bool allow_unicode_handling = !(p_key->is_command_or_control_pressed() || p_key->is_ctrl_pressed() || p_key->is_alt_pressed() || p_key->is_meta_pressed());
-			if (allow_unicode_handling)
+			if (allow_unicode_handling) {
 				handle_unicode_input(duplicated_key->get_unicode());
-			else
+			}
+			else {
 				keep_going = true;
-		}
-
-<<<<<<< HEAD
-		else keep_going = true;
-=======
-		else
+			}
+		} else {
 			keep_going = true;
->>>>>>> d92e687689 (refactorinf CodeEdit)
-
+		}
 		if (!keep_going) {
 			accept_event();
 			return true;
 		}
 	}
-<<<<<<< HEAD
-	else if (p_key->is_action("ui_text_toggle_insert_mode", true)) set_overtype_mode_enabled(!overtype_mode);
-	else if (p_key->is_action("ui_swap_input_direction", true))    _swap_current_input_direction();
-	else keep_going = true;
-
-	std::cout << "2357";
-	if (!keep_going) {
-		accept_event();
-		return true;
-	}
-	keep_going = false;
-
-	// CARET MOVEMENT
-
-	Ref<InputEventKey> key_copy = p_key->duplicate();
-	bool shift_pressed = key_copy->is_shift_pressed();
-	// Remove shift or else actions will not match. Use above variable for selection.
-	key_copy->set_shift_pressed(false);
-
-	// CARET MOVEMENT - LEFT, RIGHT.
-	if (key_copy->is_action("ui_text_caret_word_left", true))       _move_caret_left(shift_pressed, true);
-	else if (key_copy->is_action("ui_text_caret_left", true))       _move_caret_left(shift_pressed, false);
-	else if (key_copy->is_action("ui_text_caret_word_right", true)) _move_caret_right(shift_pressed, true);
-	else if (key_copy->is_action("ui_text_caret_right", true))      _move_caret_right(shift_pressed, false);
-
-	// CARET MOVEMENT - UP, DOWN.
-	else if (key_copy->is_action("ui_text_caret_up", true))   _move_caret_up(shift_pressed);
-	else if (key_copy->is_action("ui_text_caret_down", true)) _move_caret_down(shift_pressed);
-
-	// CARET MOVEMENT - DOCUMENT START/END.
-	else if (key_copy->is_action("ui_text_caret_document_start", true))  _move_caret_document_start(shift_pressed); // && shift_pressed)
-	else if (key_copy->is_action("ui_text_caret_document_end", true))    _move_caret_document_end(shift_pressed);   // && shift_pressed)
-
-	// CARET MOVEMENT - LINE START/END.
-	else if (key_copy->is_action("ui_text_caret_line_start", true)) _move_caret_to_line_start(shift_pressed);
-	else if (key_copy->is_action("ui_text_caret_line_end", true))   _move_caret_to_line_end(shift_pressed);
-
-	// CARET MOVEMENT - PAGE UP/DOWN.
-	else if (key_copy->is_action("ui_text_caret_page_up", true))   _move_caret_page_up(shift_pressed);
-	else if (key_copy->is_action("ui_text_caret_page_down", true)) _move_caret_page_down(shift_pressed);
-
-	// Handle tab as it has no set unicode value.
-	else if (key_copy->is_action("ui_text_indent", true)) {
-		if (editable) insert_text_at_caret("\t");
-	}
-
-	// Handle Unicode (if no modifiers active).
-	else if (allow_unicode_handling && editable && key_copy->get_unicode() >= 32) handle_unicode_input(key_copy->get_unicode());
-	else keep_going = true;
-	std::cout << "unicode";
-
-	if (!keep_going) {
-		accept_event();
-		return true;
-}
-=======
->>>>>>> d92e687689 (refactorinf CodeEdit)
 	return false;
 }
 
