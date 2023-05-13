@@ -2665,6 +2665,7 @@ Image::Image(const char **p_xpm) {
 	height = 0;
 	mipmaps = false;
 	format = FORMAT_L8;
+	PackedColorArray current_palette = ORIGINAL_PALETTE;
 
 	initialize_data(p_xpm);
 }
@@ -2674,6 +2675,7 @@ Image::Image(int p_width, int p_height, bool p_use_mipmaps, Format p_format) {
 	height = 0;
 	mipmaps = p_use_mipmaps;
 	format = FORMAT_L8;
+	PackedColorArray current_palette = ORIGINAL_PALETTE;
 
 	initialize_data(p_width, p_height, p_use_mipmaps, p_format);
 }
@@ -2683,6 +2685,7 @@ Image::Image(int p_width, int p_height, bool p_mipmaps, Format p_format, const V
 	height = 0;
 	mipmaps = p_mipmaps;
 	format = FORMAT_L8;
+	PackedColorArray current_palette = ORIGINAL_PALETTE;
 
 	initialize_data(p_width, p_height, p_mipmaps, p_format, p_data);
 }
@@ -3269,6 +3272,16 @@ Color Image::get_pixel(int p_x, int p_y) const {
 	return _get_color_at_ofs(data.ptr(), ofs);
 }
 
+PackedColorArray Image::get_pixels_from_image() const {
+	PackedColorArray pixels;
+	for (int y = 0; y < get_height(); y++) {
+		for (int x = 0; x < get_width(); x++) {
+			pixels.push_back(get_pixelv(Point2i(x, y)));
+		}
+	}
+	return pixels;
+}
+
 void Image::set_pixelv(const Point2i &p_point, const Color &p_color) {
 	set_pixel(p_point.x, p_point.y, p_color);
 }
@@ -3281,6 +3294,45 @@ void Image::set_pixel(int p_x, int p_y, const Color &p_color) {
 
 	uint32_t ofs = p_y * width + p_x;
 	_set_color_at_ofs(data.ptrw(), ofs, p_color);
+}
+
+PackedColorArray Image::filter_colors(const PackedColorArray &p_colors) const {
+	PackedColorArray filtered_colors;
+	for (int color_id = 0; color_id < p_colors.size(); color_id++) {
+		if (!filtered_colors.has(p_colors[color_id])) {
+			filtered_colors.push_back(p_colors[color_id]);
+		}
+	}
+	return filtered_colors;
+}
+
+PackedColorArray Image::get_palette() const {
+	return current_palette;
+}
+
+void Image::set_palette(PackedColorArray &p_new_palette) {
+	if (p_new_palette == current_palette) {
+		return;
+	}
+	ERR_FAIL_COND_EDMSG(current_palette.size() < p_new_palette.size(), "new palette must be the same size as the original");
+	if (current_palette.size() > p_new_palette.size()) {
+		WARN_PRINT_ED("new palette is greater than original, exceeded values will be discarded");
+	}
+	Dictionary hashed_palette;
+	current_palette = filter_colors(p_new_palette);
+
+	/* It's faster to find the color associated with if it's hashed,
+	   current_palette can have the same color associated with a different index */
+	for (int color_id = 0; color_id < current_palette.size(); color_id++) {
+		hashed_palette[ORIGINAL_PALETTE[color_id].to_html()] = p_new_palette[color_id];
+	}
+
+	for (int y = 0; y < get_height(); y++) {
+		for (int x = 0; x < get_width(); x++) {
+			String pixel_color = get_pixel(x,y).to_html();
+			set_pixel(x, y, hashed_palette[pixel_color]);
+		}
+	}
 }
 
 void Image::adjust_bcs(float p_brightness, float p_contrast, float p_saturation) {
@@ -3464,8 +3516,15 @@ void Image::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_pixelv", "point"), &Image::get_pixelv);
 	ClassDB::bind_method(D_METHOD("get_pixel", "x", "y"), &Image::get_pixel);
+	ClassDB::bind_method(D_METHOD("get_pixels_from_image", "x", "y"), &Image::get_pixels_from_image);
 	ClassDB::bind_method(D_METHOD("set_pixelv", "point", "color"), &Image::set_pixelv);
 	ClassDB::bind_method(D_METHOD("set_pixel", "x", "y", "color"), &Image::set_pixel);
+
+	ClassDB::bind_method(D_METHOD("filter_colors", "colors"), &Image::filter_colors);
+
+	ClassDB::bind_method(D_METHOD("get_palette"), &Image::get_palette);
+	ClassDB::bind_method(D_METHOD("set_palette", "new_palette"), &Image::set_palette);
+
 
 	ClassDB::bind_method(D_METHOD("adjust_bcs", "brightness", "contrast", "saturation"), &Image::adjust_bcs);
 
@@ -3476,6 +3535,7 @@ void Image::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("load_bmp_from_buffer", "buffer"), &Image::load_bmp_from_buffer);
 
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_data", "_get_data");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_COLOR_ARRAY, "current_palette", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "set_palette", "get_palette");
 
 	BIND_CONSTANT(MAX_WIDTH);
 	BIND_CONSTANT(MAX_HEIGHT);
@@ -3933,6 +3993,8 @@ Image::Image(const uint8_t *p_mem_png_jpg, int p_len) {
 	height = 0;
 	mipmaps = false;
 	format = FORMAT_L8;
+	const PackedColorArray ORIGINAL_PALETTE = filter_colors(get_pixels_from_image());
+	PackedColorArray current_palette = ORIGINAL_PALETTE;
 
 	if (_png_mem_loader_func) {
 		copy_internals_from(_png_mem_loader_func(p_mem_png_jpg, p_len));

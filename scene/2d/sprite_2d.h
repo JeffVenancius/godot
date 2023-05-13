@@ -46,6 +46,7 @@ class Sprite2D : public Node2D {
 
 	bool hflip = false;
 	bool vflip = false;
+	bool palette_swap_enabled = false;
 	bool region_enabled = false;
 	Rect2 region_rect;
 	bool region_filter_clip_enabled = false;
@@ -117,6 +118,9 @@ public:
 
 	void set_hframes(int p_amount);
 	int get_hframes() const;
+
+	void set_palette_swap_enabled(bool p_enabled);
+	bool is_palette_swap_enabled() const;
 
 	Rect2 get_rect() const;
 	virtual Rect2 get_anchorable_rect() const override;
