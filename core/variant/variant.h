@@ -74,6 +74,7 @@ typedef Vector<String> PackedStringArray;
 typedef Vector<Vector2> PackedVector2Array;
 typedef Vector<Vector3> PackedVector3Array;
 typedef Vector<Color> PackedColorArray;
+typedef Vector<Vector<Color>> PackedPaletteArray;
 
 class Variant {
 public:

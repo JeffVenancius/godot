@@ -46,7 +46,6 @@ class Sprite2D : public Node2D {
 
 	bool hflip = false;
 	bool vflip = false;
-	bool palette_swap_enabled = false;
 	bool region_enabled = false;
 	Rect2 region_rect;
 	bool region_filter_clip_enabled = false;
@@ -55,6 +54,14 @@ class Sprite2D : public Node2D {
 
 	int vframes = 1;
 	int hframes = 1;
+
+	Image copied_texture; // to be manipulated when palette swapping.
+	PackedColorArray sprite_colors; // also for this.
+	PackedColorArray original_palette;
+	bool palette_swap_enabled = false;
+
+	int palette;
+	Dictionary palette_map;
 
 	void _get_rects(Rect2 &r_src_rect, Rect2 &r_dst_rect, bool &r_filter_clip_enabled) const;
 
@@ -119,8 +126,16 @@ public:
 	void set_hframes(int p_amount);
 	int get_hframes() const;
 
+	PackedColorArray get_original_palette() const;
+
 	void set_palette_swap_enabled(bool p_enabled);
 	bool is_palette_swap_enabled() const;
+
+	void set_palettes(PackedPaletteArray &p_palettes);
+	Dictionary get_palettes() const;
+
+	void set_palette(int &p_palette);
+	int get_palette() const;
 
 	Rect2 get_rect() const;
 	virtual Rect2 get_anchorable_rect() const override;

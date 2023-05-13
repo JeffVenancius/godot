@@ -287,14 +287,91 @@ void Sprite2D::set_palette_swap_enabled(bool p_palette_swap_enabled) {
 	if (p_palette_swap_enabled == palette_swap_enabled) {
 		return;
 	}
-
 	palette_swap_enabled = p_palette_swap_enabled;
+
+	if (palette_swap_enabled) {
+		PackedColorArray empty_pack;
+		copied_texture = texture.get_data();
+		sprite_colors = copied_texture.get_pixels();
+		PackedColorArray original_colors = copied_texture.filter_colors(get_pixels());
+		for (int color_id = 0; color_id < original_colors.size(); color_id++) {
+			original_palette.push_back(original_colors[color_id].to_html());
+		}
+		for (int palette_id = 0; palette_id < original_palette.size(); palette_id++) {
+			String hashed_color = original_palette[palette_id];
+			palette_map[hashed_color] = empty_pack;
+		}
+	} else {
+		original_palette.clear();
+		palette_map.clear();
+		copied_texture = Image.create(0, 0, false, Image.FORMAT_L8);
+	}
 	queue_redraw();
+	notify_property_list_changed();
+}
+
+PackedColorArray Sprite2D::get_original_palette() {
+	return original_palette;
+}
+
+void Sprite2D::set_palettes(PackedPaletteArray &p_palettes) {
+	for (int palette_id = 0; palette_id < p_palettes.size(); palette_id++) {
+		ERR_FAIL_COND_EDMSG(p_palettes[palette_id].size() != original_palette.size(), "palette n must be the same size as the original");
+	}
+
+	for (int palette_id = 0; palette_id < p_palettes.size(); palette_id++) {
+		PackedColorArray current_palette = p_palettes[palette_id];
+		for (int color_id = 0; color_id < original_palette.size(); color_id++) {
+			String original_color = original_palette[color_id];
+			Color new_color = current_palette[color_id];
+			palette_map[original_color].push_back(new_color);
+		}
+	}
 	notify_property_list_changed();
 }
 
 bool Sprite2D::is_palette_swap_enabled() const {
 	return palette_swap_enabled;
+}
+
+Dictionary Sprite2D::get_palettes() const { // gets the value by inverting the association.
+	Dictionary palettes;
+	for (int associated_id = 0; associated_id < original_palette[0].size(); associated_id++) {
+		for (int palettes_id = 0; palettes_id < original_palette.size(); palette_id++) {
+			palettes[palettes_id] = palette_map[original_palette[associated_id]][palettes_id];
+		}
+	}
+	return palettes;
+}
+
+void Sprite2D::set_palette(int &p_palette) {
+	if (p_palette == palette) {
+		return;
+	}
+	palette = p_palette;
+
+	// Change only in the bounds.
+	Point2 rect_size = get_rect().size;
+	Point2 rect_position = get_rect().position;
+
+	for (int y = 0; y < rect_size.y; y++) {
+		int bounded_y = y + rect_position.y;
+		for (int x = 0; x < rect_size.x; x++) {
+			int bounded_x = x + bounded_position.x;
+			Point2i bounded_position = Point2i(bounded_x, bounded_y);
+			int original_id = x + y * rect_size.x;
+			String sprite_color = sprite_colors[original_id].to_html();
+			copied_texture.set_pixelv(bounded_position, palette_map[sprite_color][palette]);
+		}
+		texture = copied_texture.convert(texture.path.); // the texture param
+	}
+	queue_redraw();
+	emit_signal(SceneStringNames::get_singleton()->palette_changed);
+	item_rect_changed();
+}
+
+int Sprite2D::get_palette() const {
+	return palette;
 }
 
 bool Sprite2D::is_pixel_opaque(const Point2 &p_point) const {
@@ -446,6 +523,12 @@ void Sprite2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_palette_swap_enabled", "palette_swap_enabled"), &Sprite2D::set_palette_swap_enabled);
 	ClassDB::bind_method(D_METHOD("is_palette_swap_enabled"), &Sprite2D::is_palette_swap_enabled);
 
+	ClassDB::bind_method(D_METHOD("set_palettes_array"), &Sprite2D::set_palettes_array);
+	ClassDB::bind_method(D_METHOD("get_palettes_array"), &Sprite2D::get_palettes_array);
+
+	ClassDB::bind_method(D_METHOD("set_palette"), &Sprite2D::set_palette);
+	ClassDB::bind_method(D_METHOD("get_palette"), &Sprite2D::get_palette);
+
 	ClassDB::bind_method(D_METHOD("get_rect"), &Sprite2D::get_rect);
 
 	ADD_SIGNAL(MethodInfo("frame_changed"));
@@ -465,6 +548,8 @@ void Sprite2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "frame_coords", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_frame_coords", "get_frame_coords");
 	ADD_SUBGROUP("Palette", "");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "palette_swap_enabled"), "set_palette_swap_enabled", "is_palette_swap_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::int, "palette"), "set_palette", "get_palette");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_PALETTE_ARRAY, "palettes"), "set_palettes", "get_palettes");
 
 	ADD_GROUP("Region", "region_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "region_enabled"), "set_region_enabled", "is_region_enabled");

@@ -191,6 +191,7 @@ public:
 	StringName _mouse_shape_exit;
 
 	StringName frame_changed;
+	StringName palette_changed;
 	StringName texture_changed;
 
 	StringName playback_speed;

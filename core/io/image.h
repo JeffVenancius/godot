@@ -183,9 +183,6 @@ private:
 	int height = 0;
 	bool mipmaps = false;
 
-	const PackedColorArray ORIGINAL_PALETTE = filter_colors(get_pixels_from_image());
-	PackedColorArray current_palette;
-
 	void _copy_internals_from(const Image &p_image) {
 		format = p_image.format;
 		width = p_image.width;
@@ -418,14 +415,11 @@ public:
 
 	Color get_pixelv(const Point2i &p_point) const;
 	Color get_pixel(int p_x, int p_y) const;
-	PackedColorArray get_pixels_from_image() const;
+	PackedColorArray get_pixels() const;
 	void set_pixelv(const Point2i &p_point, const Color &p_color);
 	void set_pixel(int p_x, int p_y, const Color &p_color);
 
 	PackedColorArray filter_colors(const PackedColorArray &p_colors) const;
-
-	PackedColorArray get_palette() const;
-	void set_palette(PackedColorArray &p_new_palette);
 
 	void adjust_bcs(float p_brightness, float p_contrast, float p_saturation);
 
