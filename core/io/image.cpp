@@ -2649,7 +2649,7 @@ Error Image::compress_from_channels(CompressMode p_mode, UsedChannels p_channels
 			_image_compress_bptc_func(this, p_channels);
 		} break;
 		case COMPRESS_ASTC: {
-			ERR_FAIL_COND_V(!_image_compress_astc_func, ERR_UNAVAILABLE);
+			ERR_FAIL_COND_V(!_image_compress_bptc_func, ERR_UNAVAILABLE);
 			_image_compress_astc_func(this, p_astc_format);
 		} break;
 		case COMPRESS_MAX: {
@@ -3269,16 +3269,6 @@ Color Image::get_pixel(int p_x, int p_y) const {
 	return _get_color_at_ofs(data.ptr(), ofs);
 }
 
-PackedColorArray Image::get_pixels() const {
-	PackedColorArray pixels;
-	for (int y = 0; y < get_height(); y++) {
-		for (int x = 0; x < get_width(); x++) {
-			pixels.push_back(get_pixelv(Point2i(x, y)));
-		}
-	}
-	return pixels;
-}
-
 void Image::set_pixelv(const Point2i &p_point, const Color &p_color) {
 	set_pixel(p_point.x, p_point.y, p_color);
 }
@@ -3291,16 +3281,6 @@ void Image::set_pixel(int p_x, int p_y, const Color &p_color) {
 
 	uint32_t ofs = p_y * width + p_x;
 	_set_color_at_ofs(data.ptrw(), ofs, p_color);
-}
-
-PackedColorArray Image::filter_colors(const PackedColorArray &p_colors) const {
-	PackedColorArray filtered_colors;
-	for (int color_id = 0; color_id < p_colors.size(); color_id++) {
-		if (!filtered_colors.has(p_colors[color_id])) {
-			filtered_colors.push_back(p_colors[color_id]);
-		}
-	}
-	return filtered_colors;
 }
 
 void Image::adjust_bcs(float p_brightness, float p_contrast, float p_saturation) {
@@ -3484,11 +3464,8 @@ void Image::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_pixelv", "point"), &Image::get_pixelv);
 	ClassDB::bind_method(D_METHOD("get_pixel", "x", "y"), &Image::get_pixel);
-	ClassDB::bind_method(D_METHOD("get_pixels"), &Image::get_pixels_from_image);
 	ClassDB::bind_method(D_METHOD("set_pixelv", "point", "color"), &Image::set_pixelv);
 	ClassDB::bind_method(D_METHOD("set_pixel", "x", "y", "color"), &Image::set_pixel);
-
-	ClassDB::bind_method(D_METHOD("filter_colors", "colors"), &Image::filter_colors);
 
 	ClassDB::bind_method(D_METHOD("adjust_bcs", "brightness", "contrast", "saturation"), &Image::adjust_bcs);
 
@@ -3558,8 +3535,6 @@ void Image::_bind_methods() {
 	BIND_ENUM_CONSTANT(COMPRESS_ETC);
 	BIND_ENUM_CONSTANT(COMPRESS_ETC2);
 	BIND_ENUM_CONSTANT(COMPRESS_BPTC);
-	BIND_ENUM_CONSTANT(COMPRESS_ASTC);
-	BIND_ENUM_CONSTANT(COMPRESS_MAX);
 
 	BIND_ENUM_CONSTANT(USED_CHANNELS_L);
 	BIND_ENUM_CONSTANT(USED_CHANNELS_LA);

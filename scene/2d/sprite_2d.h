@@ -58,9 +58,11 @@ class Sprite2D : public Node2D {
 	Image copied_texture; // to be manipulated when palette swapping.
 	PackedColorArray sprite_colors; // also for this.
 	PackedColorArray original_palette;
-	bool palette_swap_enabled = false;
 
+	bool palette_swap_enabled = false;
 	int palette;
+
+	Vector<Vector<Color>> palette_array;
 	Dictionary palette_map;
 
 	void _get_rects(Rect2 &r_src_rect, Rect2 &r_dst_rect, bool &r_filter_clip_enabled) const;
@@ -131,8 +133,8 @@ public:
 	void set_palette_swap_enabled(bool p_enabled);
 	bool is_palette_swap_enabled() const;
 
-	void set_palettes(PackedPaletteArray &p_palettes);
-	Dictionary get_palettes() const;
+	void set_palettes(Vector<Vector<Color>> &p_palettes);
+	Vector<Vector<Color>> get_palettes() const;
 
 	void set_palette(int &p_palette);
 	int get_palette() const;

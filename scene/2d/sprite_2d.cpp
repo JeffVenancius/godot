@@ -291,12 +291,24 @@ void Sprite2D::set_palette_swap_enabled(bool p_palette_swap_enabled) {
 
 	if (palette_swap_enabled) {
 		PackedColorArray empty_pack;
-		copied_texture = texture.get_data();
-		sprite_colors = copied_texture.get_pixels();
-		PackedColorArray original_colors = copied_texture.filter_colors(get_pixels());
-		for (int color_id = 0; color_id < original_colors.size(); color_id++) {
-			original_palette.push_back(original_colors[color_id].to_html());
+		copied_texture = texture.get_image();
+
+		// get sprite_colors
+		for (int y = 0; y < copied_image.get_height(); y++) {
+			for (int x = 0; x < copied_image.get_width(); x++) {
+				sprite_colors.push_back(copied_texture.get_pixelv(Point2i(x, y)));
+			}
 		}
+
+		// filter to a palette
+		for (int color_id = 0; color_id < sprite_colors.size(); color_id++) {
+			String html_color = sprite_colors[color_id].to_html()
+			if (!original_palette.has(html_color)) {
+				original_palette.push_back(html_color);
+			}
+		}
+
+		// convert the palette to a Dictionary so it''s hashed.
 		for (int palette_id = 0; palette_id < original_palette.size(); palette_id++) {
 			String hashed_color = original_palette[palette_id];
 			palette_map[hashed_color] = empty_pack;
@@ -311,12 +323,19 @@ void Sprite2D::set_palette_swap_enabled(bool p_palette_swap_enabled) {
 }
 
 PackedColorArray Sprite2D::get_original_palette() {
+	ERR_FAIL_COND_EDMSG(palette_swap_enabled, "palette swap is not enabled");
 	return original_palette;
 }
 
-void Sprite2D::set_palettes(PackedPaletteArray &p_palettes) {
+void Sprite2D::set_palettes(Vector<Vector<Color>> &p_palettes) {
+	ERR_FAIL_COND_EDMSG(palette_swap_enabled, "palette swap is not enabled");
+	if (palette_array == p_palettes) {
+		return;
+	}
+	palette_array = p_palettes;
+
 	for (int palette_id = 0; palette_id < p_palettes.size(); palette_id++) {
-		ERR_FAIL_COND_EDMSG(p_palettes[palette_id].size() != original_palette.size(), "palette n must be the same size as the original");
+		ERR_FAIL_COND_EDMSG(p_palettes[palette_id].size() != original_palette.size(), vformat("palette %d must be the same size as the original", palette_id));
 	}
 
 	for (int palette_id = 0; palette_id < p_palettes.size(); palette_id++) {
@@ -334,23 +353,19 @@ bool Sprite2D::is_palette_swap_enabled() const {
 	return palette_swap_enabled;
 }
 
-Dictionary Sprite2D::get_palettes() const { // gets the value by inverting the association.
-	Dictionary palettes;
-	for (int associated_id = 0; associated_id < original_palette[0].size(); associated_id++) {
-		for (int palettes_id = 0; palettes_id < original_palette.size(); palette_id++) {
-			palettes[palettes_id] = palette_map[original_palette[associated_id]][palettes_id];
-		}
-	}
+Vector<Vector<Color>> Sprite2D::get_palettes() const { // gets the value by inverting the association.
+	ERR_FAIL_COND_EDMSG(palette_swap_enabled, "palette swap is not enabled");
 	return palettes;
 }
 
 void Sprite2D::set_palette(int &p_palette) {
+	ERR_FAIL_COND_MSG(palette_swap_enabled, "palette swap is not enabled");
 	if (p_palette == palette) {
 		return;
 	}
 	palette = p_palette;
 
-	// Change only in the bounds.
+	// Change only in bounds.
 	Point2 rect_size = get_rect().size;
 	Point2 rect_position = get_rect().position;
 
@@ -363,7 +378,7 @@ void Sprite2D::set_palette(int &p_palette) {
 			String sprite_color = sprite_colors[original_id].to_html();
 			copied_texture.set_pixelv(bounded_position, palette_map[sprite_color][palette]);
 		}
-		texture = copied_texture.convert(texture.path.); // the texture param
+		texture.create_from_image(copied_texture);
 	}
 	queue_redraw();
 	emit_signal(SceneStringNames::get_singleton()->palette_changed);
@@ -371,6 +386,7 @@ void Sprite2D::set_palette(int &p_palette) {
 }
 
 int Sprite2D::get_palette() const {
+	ERR_FAIL_COND_EDMSG(palette_swap_enabled, "palette swap is not enabled");
 	return palette;
 }
 
@@ -549,7 +565,7 @@ void Sprite2D::_bind_methods() {
 	ADD_SUBGROUP("Palette", "");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "palette_swap_enabled"), "set_palette_swap_enabled", "is_palette_swap_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::int, "palette"), "set_palette", "get_palette");
-	ADD_PROPERTY(PropertyInfo(Variant::PACKED_PALETTE_ARRAY, "palettes"), "set_palettes", "get_palettes");
+	/* ADD_PROPERTY(PropertyInfo(Variant::PACKED_PALETTE_ARRAY, "palettes"), "set_palettes", "get_palettes"); */
 
 	ADD_GROUP("Region", "region_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "region_enabled"), "set_region_enabled", "is_region_enabled");
