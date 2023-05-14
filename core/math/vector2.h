@@ -130,6 +130,26 @@ struct _NO_DISCARD_ Vector2 {
 	void operator-=(const Vector2 &p_v);
 	Vector2 operator*(const Vector2 &p_v1) const;
 
+	Vector2 operator+(const int32_t &p_scalar) const;
+	void operator+=(const int32_t &p_scalar);
+	Vector2 operator-(const int32_t &p_scalar) const;
+	void operator-=(const int32_t &p_scalar);
+
+	Vector2 operator+(const int64_t &p_scalar) const;
+	void operator+=(const int64_t &p_scalar);
+	Vector2 operator-(const int64_t &p_scalar) const;
+	void operator-=(const int64_t &p_scalar);
+
+	Vector2 operator+(const float &p_scalar) const;
+	void operator+=(const float &p_scalar);
+	Vector2 operator-(const float &p_scalar) const;
+	void operator-=(const float &p_scalar);
+
+	Vector2 operator+(const double &p_scalar) const;
+	void operator+=(const double &p_scalar);
+	Vector2 operator-(const double &p_scalar) const;
+	void operator-=(const double &p_scalar);
+
 	Vector2 operator*(const real_t &rvalue) const;
 	void operator*=(const real_t &rvalue);
 	void operator*=(const Vector2 &rvalue) { *this = *this * rvalue; }
@@ -201,6 +221,78 @@ _FORCE_INLINE_ Vector2 Vector2::operator-(const Vector2 &p_v) const {
 _FORCE_INLINE_ void Vector2::operator-=(const Vector2 &p_v) {
 	x -= p_v.x;
 	y -= p_v.y;
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator+(const float &p_scalar) const {
+	return Vector2(x + p_scalar, y + p_scalar);
+}
+
+_FORCE_INLINE_ void Vector2::operator+=(const float &p_scalar) {
+	x += p_scalar;
+	y += p_scalar;
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator-(const float &p_scalar) const {
+	return Vector2(x - p_scalar, y - p_scalar);
+}
+
+_FORCE_INLINE_ void Vector2::operator-=(const float &p_scalar) {
+	x -= p_scalar;
+	y -= p_scalar;
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator+(const int32_t &p_scalar) const {
+	return Vector2(x + p_scalar, y + p_scalar);
+}
+
+_FORCE_INLINE_ void Vector2::operator+=(const int32_t &p_scalar) {
+	x += p_scalar;
+	y += p_scalar;
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator-(const int32_t &p_scalar) const {
+	return Vector2(x - p_scalar, y - p_scalar);
+}
+
+_FORCE_INLINE_ void Vector2::operator-=(const int32_t &p_scalar) {
+	x -= p_scalar;
+	y -= p_scalar;
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator+(const int64_t &p_scalar) const {
+	return Vector2(x + p_scalar, y + p_scalar);
+}
+
+_FORCE_INLINE_ void Vector2::operator+=(const int64_t &p_scalar) {
+	x += p_scalar;
+	y += p_scalar;
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator-(const int64_t &p_scalar) const {
+	return Vector2(x - p_scalar, y - p_scalar);
+}
+
+_FORCE_INLINE_ void Vector2::operator-=(const int64_t &p_scalar) {
+	x -= p_scalar;
+	y -= p_scalar;
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator+(const double &p_scalar) const {
+	return Vector2(x + p_scalar, y + p_scalar);
+}
+
+_FORCE_INLINE_ void Vector2::operator+=(const double &p_scalar) {
+	x += p_scalar;
+	y += p_scalar;
+}
+
+_FORCE_INLINE_ Vector2 Vector2::operator-(const double &p_scalar) const {
+	return Vector2(x - p_scalar, y - p_scalar);
+}
+
+_FORCE_INLINE_ void Vector2::operator-=(const double &p_scalar) {
+	x -= p_scalar;
+	y -= p_scalar;
 }
 
 _FORCE_INLINE_ Vector2 Vector2::operator*(const Vector2 &p_v1) const {

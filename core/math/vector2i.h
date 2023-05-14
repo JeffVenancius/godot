@@ -91,6 +91,26 @@ struct _NO_DISCARD_ Vector2i {
 	void operator-=(const Vector2i &p_v);
 	Vector2i operator*(const Vector2i &p_v1) const;
 
+	Vector2i operator+(const int32_t &p_scalar) const;
+	void operator+=(const int32_t &p_scalar);
+	Vector2i operator-(const int32_t &p_scalar) const;
+	void operator-=(const int32_t &p_scalar);
+
+	Vector2i operator+(const int64_t &p_scalar) const;
+	void operator+=(const int64_t &p_scalar);
+	Vector2i operator-(const int64_t &p_scalar) const;
+	void operator-=(const int64_t &p_scalar);
+
+	Vector2i operator+(const float &p_scalar) const;
+	void operator+=(const float &p_scalar);
+	Vector2i operator-(const float &p_scalar) const;
+	void operator-=(const float &p_scalar);
+
+	Vector2i operator+(const double &p_scalar) const;
+	void operator+=(const double &p_scalar);
+	Vector2i operator-(const double &p_scalar) const;
+	void operator-=(const double &p_scalar);
+
 	Vector2i operator*(const int32_t &rvalue) const;
 	void operator*=(const int32_t &rvalue);
 

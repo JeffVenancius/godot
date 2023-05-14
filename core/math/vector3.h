@@ -158,6 +158,11 @@ struct _NO_DISCARD_ Vector3 {
 	_FORCE_INLINE_ Vector3 &operator/=(const Vector3 &p_v);
 	_FORCE_INLINE_ Vector3 operator/(const Vector3 &p_v) const;
 
+	_FORCE_INLINE_ Vector3 &operator+=(const real_t &p_scalar);
+	_FORCE_INLINE_ Vector3 operator+(const real_t &p_scalar) const;
+	_FORCE_INLINE_ Vector3 &operator-=(const real_t &p_scalar);
+	_FORCE_INLINE_ Vector3 operator-(const real_t &p_scalar) const;
+
 	_FORCE_INLINE_ Vector3 &operator*=(const real_t p_scalar);
 	_FORCE_INLINE_ Vector3 operator*(const real_t p_scalar) const;
 	_FORCE_INLINE_ Vector3 &operator/=(const real_t p_scalar);
@@ -337,6 +342,28 @@ Vector3 &Vector3::operator-=(const Vector3 &p_v) {
 
 Vector3 Vector3::operator-(const Vector3 &p_v) const {
 	return Vector3(x - p_v.x, y - p_v.y, z - p_v.z);
+}
+
+Vector3 &Vector3::operator+=(const real_t &p_scalar) {
+	x += p_scalar;
+	y += p_scalar;
+	z += p_scalar;
+	return *this;
+}
+
+Vector3 Vector3::operator+(const real_t &p_scalar) const {
+	return Vector3(x + p_scalar, y + p_scalar, z + p_scalar);
+}
+
+Vector3 &Vector3::operator-=(const real_t &p_scalar) {
+	x -= p_scalar;
+	y -= p_scalar;
+	z -= p_scalar;
+	return *this;
+}
+
+Vector3 Vector3::operator-(const real_t &p_scalar) const {
+	return Vector3(x - p_scalar, y - p_scalar, z - p_scalar);
 }
 
 Vector3 &Vector3::operator*=(const Vector3 &p_v) {
