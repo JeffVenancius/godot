@@ -31,47 +31,18 @@
 #ifndef TILE_MAP_H
 #define TILE_MAP_H
 
-#include "scene/2d/node_2d.h"
-#include "scene/gui/control.h"
+#include "scene/2d/cell_map.h"
 #include "scene/resources/tile_set.h"
 
 class TileSetAtlasSource;
 
-struct TileMapQuadrant {
-	struct CoordsWorldComparator {
-		_ALWAYS_INLINE_ bool operator()(const Vector2i &p_a, const Vector2i &p_b) const {
-			// We sort the cells by their local coords, as it is needed by rendering.
-			if (p_a.y == p_b.y) {
-				return p_a.x > p_b.x;
-			} else {
-				return p_a.y < p_b.y;
-			}
-		}
-	};
-
+struct TileMapQuadrant : public Quadrant {
 	// Dirty list element.
 	SelfList<TileMapQuadrant> dirty_list_element;
 
-	// Quadrant layer and coords.
-	int layer = -1;
-	Vector2i coords;
-
-	// TileMapCells
-	RBSet<Vector2i> cells;
-	// We need those two maps to sort by local position for rendering
-	// This is kind of workaround, it would be better to sort the cells directly in the "cells" set instead.
-	RBMap<Vector2i, Vector2i> map_to_local;
-	RBMap<Vector2i, Vector2i, CoordsWorldComparator> local_to_map;
-
-	// Debug.
-	RID debug_canvas_item;
-
-	// Rendering.
-	List<RID> canvas_items;
-	HashMap<Vector2i, RID> occluders;
-
 	// Physics.
 	List<RID> bodies;
+	HashMap<Vector2i, RID> occluders;
 
 	// Navigation.
 	HashMap<Vector2i, Vector<RID>> navigation_regions;
@@ -83,24 +54,21 @@ struct TileMapQuadrant {
 	HashMap<Vector2i, TileData *> runtime_tile_data_cache;
 
 	void operator=(const TileMapQuadrant &q) {
-		layer = q.layer;
-		coords = q.coords;
-		debug_canvas_item = q.debug_canvas_item;
-		canvas_items = q.canvas_items;
+		Quadrant::operator=(q);
 		occluders = q.occluders;
 		bodies = q.bodies;
 		navigation_regions = q.navigation_regions;
 	}
 
 	TileMapQuadrant(const TileMapQuadrant &q) :
-			dirty_list_element(this) {
-		layer = q.layer;
-		coords = q.coords;
-		debug_canvas_item = q.debug_canvas_item;
-		canvas_items = q.canvas_items;
-		occluders = q.occluders;
-		bodies = q.bodies;
-		navigation_regions = q.navigation_regions;
+		dirty_list_element(this) {
+			layer = q.layer;
+			coords = q.coords;
+			debug_canvas_item = q.debug_canvas_item;
+			canvas_items = q.canvas_items;
+			occluders = q.occluders;
+			bodies = q.bodies;
+			navigation_regions = q.navigation_regions;
 	}
 
 	TileMapQuadrant() :
@@ -108,8 +76,8 @@ struct TileMapQuadrant {
 	}
 };
 
-class TileMap : public Node2D {
-	GDCLASS(TileMap, Node2D);
+class TileMap : public CellMap {
+	GDCLASS(TileMap, CellMap);
 
 public:
 	class TerrainConstraint {
@@ -190,65 +158,39 @@ private:
 	VisibilityMode collision_visibility_mode = VISIBILITY_MODE_DEFAULT;
 	VisibilityMode navigation_visibility_mode = VISIBILITY_MODE_DEFAULT;
 
-	// Updates.
-	bool pending_update = false;
-
-	// Rect.
-	Rect2 rect_cache;
-	bool rect_cache_dirty = true;
-	Rect2i used_rect_cache;
-	bool used_rect_cache_dirty = true;
-
 	// TileMap layers.
-	struct TileMapLayer {
-		String name;
-		bool enabled = true;
-		Color modulate = Color(1, 1, 1, 1);
-		bool y_sort_enabled = false;
-		int y_sort_origin = 0;
-		int z_index = 0;
-		RID canvas_item;
+	struct TileMapLayer : CellMapLayer {
 		HashMap<Vector2i, TileMapCell> tile_map;
 		HashMap<Vector2i, TileMapQuadrant> quadrant_map;
 		SelfList<TileMapQuadrant>::List dirty_quadrant_list;
 	};
 	LocalVector<TileMapLayer> layers;
-	int selected_layer = -1;
 
 	// Mapping for RID to coords.
 	HashMap<RID, Vector2i> bodies_coords;
 
 	// Quadrants and internals management.
-	Vector2i _coords_to_quadrant_coords(int p_layer, const Vector2i &p_coords) const;
-
 	HashMap<Vector2i, TileMapQuadrant>::Iterator _create_quadrant(int p_layer, const Vector2i &p_qk);
-
 	void _make_quadrant_dirty(HashMap<Vector2i, TileMapQuadrant>::Iterator Q);
-	void _make_all_quadrants_dirty();
-	void _queue_update_dirty_quadrants();
-
+	virtual void _make_all_quadrants_dirty() override;
 	void _update_dirty_quadrants();
 
-	void _recreate_layer_internals(int p_layer);
-	void _recreate_internals();
+
+	virtual void _recreate_layer_internals(int p_layer) override;
+	virtual void _clear_layer_internals(int p_layer) override;
 
 	void _erase_quadrant(HashMap<Vector2i, TileMapQuadrant>::Iterator Q);
-	void _clear_layer_internals(int p_layer);
-	void _clear_internals();
 
 	HashSet<Vector3i> instantiated_scenes;
 
 	// Rect caching.
-	void _recompute_rect_cache();
+	virtual void _recompute_rect_cache() override;
 
+	void _rendering_cleanup_quadrant(TileMapQuadrant *p_quadrant);
 	// Per-system methods.
-	bool _rendering_quadrant_order_dirty = false;
-	void _rendering_notification(int p_what);
-	void _rendering_update_layer(int p_layer);
-	void _rendering_cleanup_layer(int p_layer);
+	virtual void _rendering_notification(int p_what) override;
 	void _rendering_update_dirty_quadrants(SelfList<TileMapQuadrant>::List &r_dirty_quadrant_list);
 	void _rendering_create_quadrant(TileMapQuadrant *p_quadrant);
-	void _rendering_cleanup_quadrant(TileMapQuadrant *p_quadrant);
 	void _rendering_draw_quadrant_debug(TileMapQuadrant *p_quadrant);
 
 	Transform2D last_valid_transform;
@@ -263,6 +205,7 @@ private:
 	void _navigation_cleanup_quadrant(TileMapQuadrant *p_quadrant);
 	void _navigation_draw_quadrant_debug(TileMapQuadrant *p_quadrant);
 
+	// Scenes
 	void _scenes_update_dirty_quadrants(SelfList<TileMapQuadrant>::List &r_dirty_quadrant_list);
 	void _scenes_cleanup_quadrant(TileMapQuadrant *p_quadrant);
 	void _scenes_draw_quadrant_debug(TileMapQuadrant *p_quadrant);
@@ -273,8 +216,8 @@ private:
 	RBSet<TerrainConstraint> _get_terrain_constraints_from_painted_cells_list(int p_layer, const RBSet<Vector2i> &p_painted, int p_terrain_set, bool p_ignore_empty_terrains) const;
 
 	// Set and get tiles from data arrays.
-	void _set_tile_data(int p_layer, const Vector<int> &p_data);
-	Vector<int> _get_tile_data(int p_layer) const;
+	virtual void _set_tile_data(int p_layer, const Vector<int> &p_data) override;
+	virtual Vector<int> _get_tile_data(int p_layer) const override;
 
 	void _build_runtime_update_tile_data(SelfList<TileMapQuadrant>::List &r_dirty_quadrant_list);
 
@@ -290,44 +233,17 @@ protected:
 	void _notification(int p_what);
 	static void _bind_methods();
 
+	virtual void _rendering_update_layer(int p_layer) override;
 public:
 	static Vector2i transform_coords_layout(const Vector2i &p_coords, TileSet::TileOffsetAxis p_offset_axis, TileSet::TileLayout p_from_layout, TileSet::TileLayout p_to_layout);
-
-	enum {
-		INVALID_CELL = -1
-	};
-
-#ifdef TOOLS_ENABLED
-	virtual Rect2 _edit_get_rect() const override;
-#endif
 
 	void set_tileset(const Ref<TileSet> &p_tileset);
 	Ref<TileSet> get_tileset() const;
 
-	void set_quadrant_size(int p_size);
+	virtual void set_quadrant_size(int p_size) override;
 	int get_quadrant_size() const;
 
 	static void draw_tile(RID p_canvas_item, const Vector2i &p_position, const Ref<TileSet> p_tile_set, int p_atlas_source_id, const Vector2i &p_atlas_coords, int p_alternative_tile, int p_frame = -1, Color p_modulation = Color(1.0, 1.0, 1.0, 1.0), const TileData *p_tile_data_override = nullptr);
-
-	// Layers management.
-	int get_layers_count() const;
-	void add_layer(int p_to_pos);
-	void move_layer(int p_layer, int p_to_pos);
-	void remove_layer(int p_layer);
-	void set_layer_name(int p_layer, String p_name);
-	String get_layer_name(int p_layer) const;
-	void set_layer_enabled(int p_layer, bool p_visible);
-	bool is_layer_enabled(int p_layer) const;
-	void set_layer_modulate(int p_layer, Color p_modulate);
-	Color get_layer_modulate(int p_layer) const;
-	void set_layer_y_sort_enabled(int p_layer, bool p_enabled);
-	bool is_layer_y_sort_enabled(int p_layer) const;
-	void set_layer_y_sort_origin(int p_layer, int p_y_sort_origin);
-	int get_layer_y_sort_origin(int p_layer) const;
-	void set_layer_z_index(int p_layer, int p_z_index);
-	int get_layer_z_index(int p_layer) const;
-	void set_selected_layer(int p_layer_id); // For editor use.
-	int get_selected_layer() const;
 
 	void set_collision_animatable(bool p_enabled);
 	bool is_collision_animatable() const;
@@ -341,11 +257,10 @@ public:
 
 	// Cells accessors.
 	void set_cell(int p_layer, const Vector2i &p_coords, int p_source_id = TileSet::INVALID_SOURCE, const Vector2i p_atlas_coords = TileSetSource::INVALID_ATLAS_COORDS, int p_alternative_tile = 0);
-	void erase_cell(int p_layer, const Vector2i &p_coords);
+	virtual void erase_cell(int p_layer, const Vector2i &p_coords) override;
 	int get_cell_source_id(int p_layer, const Vector2i &p_coords, bool p_use_proxies = false) const;
 	Vector2i get_cell_atlas_coords(int p_layer, const Vector2i &p_coords, bool p_use_proxies = false) const;
 	int get_cell_alternative_tile(int p_layer, const Vector2i &p_coords, bool p_use_proxies = false) const;
-	// Helper method to make accessing the data easier.
 	TileData *get_cell_tile_data(int p_layer, const Vector2i &p_coords, bool p_use_proxies = false) const;
 
 	// Patterns.
@@ -368,17 +283,15 @@ public:
 	int get_effective_quadrant_size(int p_layer) const;
 	//---
 
-	virtual void set_y_sort_enabled(bool p_enable) override;
-
-	Vector2 map_to_local(const Vector2i &p_pos) const;
-	Vector2i local_to_map(const Vector2 &p_pos) const;
-
 	bool is_existing_neighbor(TileSet::CellNeighbor p_cell_neighbor) const;
 	Vector2i get_neighbor_cell(const Vector2i &p_coords, TileSet::CellNeighbor p_cell_neighbor) const;
 
-	TypedArray<Vector2i> get_used_cells(int p_layer) const;
+	virtual Vector2 map_to_local(const Vector2i &p_pos) const override;
+	virtual Vector2i local_to_map(const Vector2 &p_pos) const override;
+
+	virtual TypedArray<Vector2i> get_used_cells(int p_layer) const override;
 	TypedArray<Vector2i> get_used_cells_by_id(int p_layer, int p_source_id = TileSet::INVALID_SOURCE, const Vector2i p_atlas_coords = TileSetSource::INVALID_ATLAS_COORDS, int p_alternative_tile = TileSetSource::INVALID_TILE_ALTERNATIVE) const;
-	Rect2i get_used_rect(); // Not const because of cache
+	virtual Rect2i get_used_rect() override; // Not const because of cache
 
 	// Override some methods of the CanvasItem class to pass the changes to the quadrants CanvasItems
 	virtual void set_light_mask(int p_light_mask) override;
@@ -392,13 +305,8 @@ public:
 
 	// Fixing and clearing methods.
 	void fix_invalid_tiles();
-
-	// Clears tiles from a given layer
-	void clear_layer(int p_layer);
-	void clear();
-
-	// Force a TileMap update
-	void force_update(int p_layer = -1);
+	virtual void clear_layer(int p_layer) override;
+	virtual void clear() override;
 
 	// Helpers?
 	TypedArray<Vector2i> get_surrounding_cells(const Vector2i &coords);
