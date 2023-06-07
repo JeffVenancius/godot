@@ -83,7 +83,7 @@ HashMap<Vector2i, CellSet::CellNeighbor> CellMap::TerrainConstraint::get_overlap
 	} else {
 		// Half offset shapes.
 		CellSet::CellOffsetAxis offset_axis = cs->get_cell_offset_axis();
-		if (offset_axis == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+		if (offset_axis == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 			switch (bit) {
 				case 1:
 					output[base_cell_coords] = CellSet::CELL_NEIGHBOR_RIGHT_SIDE;
@@ -240,7 +240,7 @@ CellMap::TerrainConstraint::TerrainConstraint(const CellMap *p_cell_map, const V
 	} else {
 		// Half-offset shapes
 		CellSet::CellOffsetAxis offset_axis = cs->get_cell_offset_axis();
-		if (offset_axis == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+		if (offset_axis == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 			switch (p_bit) {
 				case CellSet::CELL_NEIGHBOR_RIGHT_SIDE:
 					bit = 1;
@@ -356,20 +356,20 @@ CellMap::TerrainConstraint::TerrainConstraint(const CellMap *p_cell_map, const V
 Vector2i CellMap::transform_coords_layout(const Vector2i &p_coords, CellSet::CellOffsetAxis p_offset_axis, CellSet::CellLayout p_from_layout, CellSet::CellLayout p_to_layout) {
 	// Transform to stacked layout.
 	Vector2i output = p_coords;
-	if (p_offset_axis == CellSet::cell_OFFSET_AXIS_VERTICAL) {
+	if (p_offset_axis == CellSet::CELL_OFFSET_AXIS_VERTICAL) {
 		SWAP(output.x, output.y);
 	}
 	switch (p_from_layout) {
-		case CellSet::cell_LAYOUT_STACKED:
+		case CellSet::CELL_LAYOUT_STACKED:
 			break;
-		case CellSet::cell_LAYOUT_STACKED_OFFSET:
+		case CellSet::CELL_LAYOUT_STACKED_OFFSET:
 			if (output.y % 2) {
 				output.x -= 1;
 			}
 			break;
-		case CellSet::cell_LAYOUT_STAIRS_RIGHT:
-		case CellSet::cell_LAYOUT_STAIRS_DOWN:
-			if ((p_from_layout == CellSet::cell_LAYOUT_STAIRS_RIGHT) ^ (p_offset_axis == CellSet::cell_OFFSET_AXIS_VERTICAL)) {
+		case CellSet::CELL_LAYOUT_STAIRS_RIGHT:
+		case CellSet::CELL_LAYOUT_STAIRS_DOWN:
+			if ((p_from_layout == CellSet::CELL_LAYOUT_STAIRS_RIGHT) ^ (p_offset_axis == CellSet::CELL_OFFSET_AXIS_VERTICAL)) {
 				if (output.y < 0 && bool(output.y % 2)) {
 					output = Vector2i(output.x + output.y / 2 - 1, output.y);
 				} else {
@@ -383,9 +383,9 @@ Vector2i CellMap::transform_coords_layout(const Vector2i &p_coords, CellSet::Cel
 				}
 			}
 			break;
-		case CellSet::cell_LAYOUT_DIAMOND_RIGHT:
-		case CellSet::cell_LAYOUT_DIAMOND_DOWN:
-			if ((p_from_layout == CellSet::cell_LAYOUT_DIAMOND_RIGHT) ^ (p_offset_axis == CellSet::cell_OFFSET_AXIS_VERTICAL)) {
+		case CellSet::CELL_LAYOUT_DIAMOND_RIGHT:
+		case CellSet::CELL_LAYOUT_DIAMOND_DOWN:
+			if ((p_from_layout == CellSet::CELL_LAYOUT_DIAMOND_RIGHT) ^ (p_offset_axis == CellSet::CELL_OFFSET_AXIS_VERTICAL)) {
 				if ((output.x + output.y) < 0 && (output.x - output.y) % 2) {
 					output = Vector2i((output.x + output.y) / 2 - 1, output.y - output.x);
 				} else {
@@ -402,16 +402,16 @@ Vector2i CellMap::transform_coords_layout(const Vector2i &p_coords, CellSet::Cel
 	}
 
 	switch (p_to_layout) {
-		case CellSet::cell_LAYOUT_STACKED:
+		case CellSet::CELL_LAYOUT_STACKED:
 			break;
-		case CellSet::cell_LAYOUT_STACKED_OFFSET:
+		case CellSet::CELL_LAYOUT_STACKED_OFFSET:
 			if (output.y % 2) {
 				output.x += 1;
 			}
 			break;
-		case CellSet::cell_LAYOUT_STAIRS_RIGHT:
-		case CellSet::cell_LAYOUT_STAIRS_DOWN:
-			if ((p_to_layout == CellSet::cell_LAYOUT_STAIRS_RIGHT) ^ (p_offset_axis == CellSet::cell_OFFSET_AXIS_VERTICAL)) {
+		case CellSet::CELL_LAYOUT_STAIRS_RIGHT:
+		case CellSet::CELL_LAYOUT_STAIRS_DOWN:
+			if ((p_to_layout == CellSet::CELL_LAYOUT_STAIRS_RIGHT) ^ (p_offset_axis == CellSet::CELL_OFFSET_AXIS_VERTICAL)) {
 				if (output.y < 0 && (output.y % 2)) {
 					output = Vector2i(output.x - output.y / 2 + 1, output.y);
 				} else {
@@ -429,9 +429,9 @@ Vector2i CellMap::transform_coords_layout(const Vector2i &p_coords, CellSet::Cel
 				}
 			}
 			break;
-		case CellSet::cell_LAYOUT_DIAMOND_RIGHT:
-		case CellSet::cell_LAYOUT_DIAMOND_DOWN:
-			if ((p_to_layout == CellSet::cell_LAYOUT_DIAMOND_RIGHT) ^ (p_offset_axis == CellSet::cell_OFFSET_AXIS_VERTICAL)) {
+		case CellSet::CELL_LAYOUT_DIAMOND_RIGHT:
+		case CellSet::CELL_LAYOUT_DIAMOND_DOWN:
+			if ((p_to_layout == CellSet::CELL_LAYOUT_DIAMOND_RIGHT) ^ (p_offset_axis == CellSet::CELL_OFFSET_AXIS_VERTICAL)) {
 				if (output.y % 2) {
 					if (output.y > 0) {
 						output = Vector2i(output.x - output.y / 2, output.x + output.y / 2 + 1);
@@ -455,7 +455,7 @@ Vector2i CellMap::transform_coords_layout(const Vector2i &p_coords, CellSet::Cel
 			break;
 	}
 
-	if (p_offset_axis == CellSet::cell_OFFSET_AXIS_VERTICAL) {
+	if (p_offset_axis == CellSet::CELL_OFFSET_AXIS_VERTICAL) {
 		SWAP(output.x, output.y);
 	}
 
@@ -505,7 +505,7 @@ Ref<CellSet> CellMap::get_cellset() const {
 	return cell_set;
 }
 
-void CellMap::set_cellset(const Ref<cellset> &p_cellset) {
+void CellMap::set_cellset(const Ref<CellSet> &p_cellset) {
 	if (p_cellset == cell_set) {
 		return;
 	}
@@ -1001,24 +1001,6 @@ void CellMap::erase_cell(int p_layer, const Vector2i &p_coords) {
 	set_cell(p_layer, p_coords, CellSet::INVALID_SOURCE, CellSetSource::INVALID_ATLAS_COORDS, CellSetSource::INVALID_cell_ALTERNATIVE);
 }
 
-void CellMap::fix_invalid_cells() {
-	ERR_FAIL_COND_MSG(cell_set.is_null(), "Cannot fix invalid cells if Cellset is not open.");
-
-	for (unsigned int i = 0; i < layers.size(); i++) {
-		const HashMap<Vector2i, CellMapCell> &cell_map = layers[i].cell_map;
-		RBSet<Vector2i> coords;
-		for (const KeyValue<Vector2i, CellMapCell> &E : cell_map) {
-			CellSetSource *source = *cell_set->get_source(E.value.source_id);
-			if (!source || !source->has_cell(E.value.get_atlas_coords()) || !source->has_alternative_cell(E.value.get_atlas_coords(), E.value.alternative_cell)) {
-				coords.insert(E.key);
-			}
-		}
-		for (const Vector2i &E : coords) {
-			set_cell(i, E, CellSet::INVALID_SOURCE, CellSetSource::INVALID_ATLAS_COORDS, CellSetSource::INVALID_cell_ALTERNATIVE);
-		}
-	}
-}
-
 int CellMap::get_cell_source_id(int p_layer, const Vector2i &p_coords, bool p_use_proxies) const {
 	ERR_FAIL_INDEX_V(p_layer, (int)layers.size(), CellSet::INVALID_SOURCE);
 
@@ -1096,16 +1078,16 @@ Vector2i CellMap::map_pattern(const Vector2i &p_position_in_cellmap, const Vecto
 
 	Vector2i output = p_position_in_cellmap + p_coords_in_pattern;
 	if (cell_set->get_cell_shape() != CellSet::CELL_SHAPE_SQUARE) {
-		if (cell_set->get_cell_layout() == CellSet::cell_LAYOUT_STACKED) {
-			if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL && bool(p_position_in_cellmap.y % 2) && bool(p_coords_in_pattern.y % 2)) {
+		if (cell_set->get_cell_layout() == CellSet::CELL_LAYOUT_STACKED) {
+			if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL && bool(p_position_in_cellmap.y % 2) && bool(p_coords_in_pattern.y % 2)) {
 				output.x += 1;
-			} else if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_VERTICAL && bool(p_position_in_cellmap.x % 2) && bool(p_coords_in_pattern.x % 2)) {
+			} else if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_VERTICAL && bool(p_position_in_cellmap.x % 2) && bool(p_coords_in_pattern.x % 2)) {
 				output.y += 1;
 			}
-		} else if (cell_set->get_cell_layout() == CellSet::cell_LAYOUT_STACKED_OFFSET) {
-			if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL && bool(p_position_in_cellmap.y % 2) && bool(p_coords_in_pattern.y % 2)) {
+		} else if (cell_set->get_cell_layout() == CellSet::CELL_LAYOUT_STACKED_OFFSET) {
+			if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL && bool(p_position_in_cellmap.y % 2) && bool(p_coords_in_pattern.y % 2)) {
 				output.x -= 1;
-			} else if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_VERTICAL && bool(p_position_in_cellmap.x % 2) && bool(p_coords_in_pattern.x % 2)) {
+			} else if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_VERTICAL && bool(p_position_in_cellmap.x % 2) && bool(p_coords_in_pattern.x % 2)) {
 				output.y -= 1;
 			}
 		}
@@ -2004,45 +1986,45 @@ Vector2 CellMap::map_to_local(const Vector2i &p_pos) const {
 	if (cell_shape == CellSet::CELL_SHAPE_HALF_OFFSET_SQUARE || cell_shape == CellSet::CELL_SHAPE_HEXAGON || cell_shape == CellSet::CELL_SHAPE_ISOMETRIC) {
 		// Technically, those 3 shapes are equivalent, as they are basically half-offset, but with different levels or overlap.
 		// square = no overlap, hexagon = 0.25 overlap, isometric = 0.5 overlap
-		if (cell_offset_axis == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+		if (cell_offset_axis == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 			switch (cell_set->get_cell_layout()) {
-				case CellSet::cell_LAYOUT_STACKED:
+				case CellSet::CELL_LAYOUT_STACKED:
 					ret = Vector2(ret.x + (Math::posmod(ret.y, 2) == 0 ? 0.0 : 0.5), ret.y);
 					break;
-				case CellSet::cell_LAYOUT_STACKED_OFFSET:
+				case CellSet::CELL_LAYOUT_STACKED_OFFSET:
 					ret = Vector2(ret.x + (Math::posmod(ret.y, 2) == 1 ? 0.0 : 0.5), ret.y);
 					break;
-				case CellSet::cell_LAYOUT_STAIRS_RIGHT:
+				case CellSet::CELL_LAYOUT_STAIRS_RIGHT:
 					ret = Vector2(ret.x + ret.y / 2, ret.y);
 					break;
-				case CellSet::cell_LAYOUT_STAIRS_DOWN:
+				case CellSet::CELL_LAYOUT_STAIRS_DOWN:
 					ret = Vector2(ret.x / 2, ret.y * 2 + ret.x);
 					break;
-				case CellSet::cell_LAYOUT_DIAMOND_RIGHT:
+				case CellSet::CELL_LAYOUT_DIAMOND_RIGHT:
 					ret = Vector2((ret.x + ret.y) / 2, ret.y - ret.x);
 					break;
-				case CellSet::cell_LAYOUT_DIAMOND_DOWN:
+				case CellSet::CELL_LAYOUT_DIAMOND_DOWN:
 					ret = Vector2((ret.x - ret.y) / 2, ret.y + ret.x);
 					break;
 			}
-		} else { // cell_OFFSET_AXIS_VERTICAL
+		} else { // CELL_OFFSET_AXIS_VERTICAL
 			switch (cell_set->get_cell_layout()) {
-				case CellSet::cell_LAYOUT_STACKED:
+				case CellSet::CELL_LAYOUT_STACKED:
 					ret = Vector2(ret.x, ret.y + (Math::posmod(ret.x, 2) == 0 ? 0.0 : 0.5));
 					break;
-				case CellSet::cell_LAYOUT_STACKED_OFFSET:
+				case CellSet::CELL_LAYOUT_STACKED_OFFSET:
 					ret = Vector2(ret.x, ret.y + (Math::posmod(ret.x, 2) == 1 ? 0.0 : 0.5));
 					break;
-				case CellSet::cell_LAYOUT_STAIRS_RIGHT:
+				case CellSet::CELL_LAYOUT_STAIRS_RIGHT:
 					ret = Vector2(ret.x * 2 + ret.y, ret.y / 2);
 					break;
-				case CellSet::cell_LAYOUT_STAIRS_DOWN:
+				case CellSet::CELL_LAYOUT_STAIRS_DOWN:
 					ret = Vector2(ret.x, ret.y + ret.x / 2);
 					break;
-				case CellSet::cell_LAYOUT_DIAMOND_RIGHT:
+				case CellSet::CELL_LAYOUT_DIAMOND_RIGHT:
 					ret = Vector2(ret.x + ret.y, (ret.y - ret.x) / 2);
 					break;
-				case CellSet::cell_LAYOUT_DIAMOND_DOWN:
+				case CellSet::CELL_LAYOUT_DIAMOND_DOWN:
 					ret = Vector2(ret.x - ret.y, (ret.y + ret.x) / 2);
 					break;
 			}
@@ -2051,14 +2033,14 @@ Vector2 CellMap::map_to_local(const Vector2i &p_pos) const {
 
 	// Multiply by the overlapping ratio
 	double overlapping_ratio = 1.0;
-	if (cell_offset_axis == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+	if (cell_offset_axis == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 		if (cell_shape == CellSet::CELL_SHAPE_ISOMETRIC) {
 			overlapping_ratio = 0.5;
 		} else if (cell_shape == CellSet::CELL_SHAPE_HEXAGON) {
 			overlapping_ratio = 0.75;
 		}
 		ret.y *= overlapping_ratio;
-	} else { // cell_OFFSET_AXIS_VERTICAL
+	} else { // CELL_OFFSET_AXIS_VERTICAL
 		if (cell_shape == CellSet::CELL_SHAPE_ISOMETRIC) {
 			overlapping_ratio = 0.5;
 		} else if (cell_shape == CellSet::CELL_SHAPE_HEXAGON) {
@@ -2082,14 +2064,14 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 
 	// Divide by the overlapping ratio
 	double overlapping_ratio = 1.0;
-	if (cell_offset_axis == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+	if (cell_offset_axis == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 		if (cell_shape == CellSet::CELL_SHAPE_ISOMETRIC) {
 			overlapping_ratio = 0.5;
 		} else if (cell_shape == CellSet::CELL_SHAPE_HEXAGON) {
 			overlapping_ratio = 0.75;
 		}
 		ret.y /= overlapping_ratio;
-	} else { // cell_OFFSET_AXIS_VERTICAL
+	} else { // CELL_OFFSET_AXIS_VERTICAL
 		if (cell_shape == CellSet::CELL_SHAPE_ISOMETRIC) {
 			overlapping_ratio = 0.5;
 		} else if (cell_shape == CellSet::CELL_SHAPE_HEXAGON) {
@@ -2102,10 +2084,10 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 	if (cell_shape == CellSet::CELL_SHAPE_HALF_OFFSET_SQUARE || cell_shape == CellSet::CELL_SHAPE_HEXAGON || cell_shape == CellSet::CELL_SHAPE_ISOMETRIC) {
 		// Technically, those 3 shapes are equivalent, as they are basically half-offset, but with different levels or overlap.
 		// square = no overlap, hexagon = 0.25 overlap, isometric = 0.5 overlap
-		if (cell_offset_axis == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+		if (cell_offset_axis == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 			// Smart floor of the position
 			Vector2 raw_pos = ret;
-			if (Math::posmod(Math::floor(ret.y), 2) ^ (cell_layout == CellSet::cell_LAYOUT_STACKED_OFFSET)) {
+			if (Math::posmod(Math::floor(ret.y), 2) ^ (cell_layout == CellSet::CELL_LAYOUT_STACKED_OFFSET)) {
 				ret = Vector2(Math::floor(ret.x + 0.5) - 0.5, Math::floor(ret.y));
 			} else {
 				ret = ret.floor();
@@ -2117,7 +2099,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 			bool in_top_right_triangle = (in_cell_pos - Vector2(0.5, 0.0)).cross(Vector2(0.5, 1.0 / overlapping_ratio - 1)) > 0;
 
 			switch (cell_layout) {
-				case CellSet::cell_LAYOUT_STACKED:
+				case CellSet::CELL_LAYOUT_STACKED:
 					ret = ret.floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(Math::posmod(Math::floor(ret.y), 2) ? 0 : -1, -1);
@@ -2125,7 +2107,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(Math::posmod(Math::floor(ret.y), 2) ? 1 : 0, -1);
 					}
 					break;
-				case CellSet::cell_LAYOUT_STACKED_OFFSET:
+				case CellSet::CELL_LAYOUT_STACKED_OFFSET:
 					ret = ret.floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(Math::posmod(Math::floor(ret.y), 2) ? -1 : 0, -1);
@@ -2133,7 +2115,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(Math::posmod(Math::floor(ret.y), 2) ? 0 : 1, -1);
 					}
 					break;
-				case CellSet::cell_LAYOUT_STAIRS_RIGHT:
+				case CellSet::CELL_LAYOUT_STAIRS_RIGHT:
 					ret = Vector2(ret.x - ret.y / 2, ret.y).floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(0, -1);
@@ -2141,7 +2123,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(1, -1);
 					}
 					break;
-				case CellSet::cell_LAYOUT_STAIRS_DOWN:
+				case CellSet::CELL_LAYOUT_STAIRS_DOWN:
 					ret = Vector2(ret.x * 2, ret.y / 2 - ret.x).floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(-1, 0);
@@ -2149,7 +2131,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(1, -1);
 					}
 					break;
-				case CellSet::cell_LAYOUT_DIAMOND_RIGHT:
+				case CellSet::CELL_LAYOUT_DIAMOND_RIGHT:
 					ret = Vector2(ret.x - ret.y / 2, ret.y / 2 + ret.x).floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(0, -1);
@@ -2157,7 +2139,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(1, 0);
 					}
 					break;
-				case CellSet::cell_LAYOUT_DIAMOND_DOWN:
+				case CellSet::CELL_LAYOUT_DIAMOND_DOWN:
 					ret = Vector2(ret.x + ret.y / 2, ret.y / 2 - ret.x).floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(-1, 0);
@@ -2166,10 +2148,10 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 					}
 					break;
 			}
-		} else { // cell_OFFSET_AXIS_VERTICAL
+		} else { // CELL_OFFSET_AXIS_VERTICAL
 			// Smart floor of the position
 			Vector2 raw_pos = ret;
-			if (Math::posmod(Math::floor(ret.x), 2) ^ (cell_layout == CellSet::cell_LAYOUT_STACKED_OFFSET)) {
+			if (Math::posmod(Math::floor(ret.x), 2) ^ (cell_layout == CellSet::CELL_LAYOUT_STACKED_OFFSET)) {
 				ret = Vector2(Math::floor(ret.x), Math::floor(ret.y + 0.5) - 0.5);
 			} else {
 				ret = ret.floor();
@@ -2181,7 +2163,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 			bool in_bottom_left_triangle = (in_cell_pos - Vector2(0.0, 0.5)).cross(Vector2(1.0 / overlapping_ratio - 1, 0.5)) <= 0;
 
 			switch (cell_layout) {
-				case CellSet::cell_LAYOUT_STACKED:
+				case CellSet::CELL_LAYOUT_STACKED:
 					ret = ret.floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(-1, Math::posmod(Math::floor(ret.x), 2) ? 0 : -1);
@@ -2189,7 +2171,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(-1, Math::posmod(Math::floor(ret.x), 2) ? 1 : 0);
 					}
 					break;
-				case CellSet::cell_LAYOUT_STACKED_OFFSET:
+				case CellSet::CELL_LAYOUT_STACKED_OFFSET:
 					ret = ret.floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(-1, Math::posmod(Math::floor(ret.x), 2) ? -1 : 0);
@@ -2197,7 +2179,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(-1, Math::posmod(Math::floor(ret.x), 2) ? 0 : 1);
 					}
 					break;
-				case CellSet::cell_LAYOUT_STAIRS_RIGHT:
+				case CellSet::CELL_LAYOUT_STAIRS_RIGHT:
 					ret = Vector2(ret.x / 2 - ret.y, ret.y * 2).floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(0, -1);
@@ -2205,7 +2187,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(-1, 1);
 					}
 					break;
-				case CellSet::cell_LAYOUT_STAIRS_DOWN:
+				case CellSet::CELL_LAYOUT_STAIRS_DOWN:
 					ret = Vector2(ret.x, ret.y - ret.x / 2).floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(-1, 0);
@@ -2213,7 +2195,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(-1, 1);
 					}
 					break;
-				case CellSet::cell_LAYOUT_DIAMOND_RIGHT:
+				case CellSet::CELL_LAYOUT_DIAMOND_RIGHT:
 					ret = Vector2(ret.x / 2 - ret.y, ret.y + ret.x / 2).floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(0, -1);
@@ -2221,7 +2203,7 @@ Vector2i CellMap::local_to_map(const Vector2 &p_local_position) const {
 						ret += Vector2i(-1, 0);
 					}
 					break;
-				case CellSet::cell_LAYOUT_DIAMOND_DOWN:
+				case CellSet::CELL_LAYOUT_DIAMOND_DOWN:
 					ret = Vector2(ret.x / 2 + ret.y, ret.y - ret.x / 2).floor();
 					if (in_top_left_triangle) {
 						ret += Vector2i(-1, 0);
@@ -2261,7 +2243,7 @@ bool CellMap::is_existing_neighbor(CellSet::CellNeighbor p_cell_neighbor) const 
 				p_cell_neighbor == CellSet::CELL_NEIGHBOR_TOP_CORNER ||
 				p_cell_neighbor == CellSet::CELL_NEIGHBOR_TOP_RIGHT_SIDE;
 	} else {
-		if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+		if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 			return p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_SIDE ||
 					p_cell_neighbor == CellSet::CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE ||
 					p_cell_neighbor == CellSet::CELL_NEIGHBOR_BOTTOM_LEFT_SIDE ||
@@ -2306,8 +2288,8 @@ Vector2i CellMap::get_neighbor_cell(const Vector2i &p_coords, CellSet::CellNeigh
 		}
 	} else { // Half-offset shapes (square and hexagon)
 		switch (cell_set->get_cell_layout()) {
-			case CellSet::cell_LAYOUT_STACKED: {
-				if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+			case CellSet::CELL_LAYOUT_STACKED: {
+				if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 					bool is_offset = p_coords.y % 2;
 					if ((shape == CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_CORNER) ||
 							(shape != CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_SIDE)) {
@@ -2356,8 +2338,8 @@ Vector2i CellMap::get_neighbor_cell(const Vector2i &p_coords, CellSet::CellNeigh
 					}
 				}
 			} break;
-			case CellSet::cell_LAYOUT_STACKED_OFFSET: {
-				if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+			case CellSet::CELL_LAYOUT_STACKED_OFFSET: {
+				if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 					bool is_offset = p_coords.y % 2;
 
 					if ((shape == CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_CORNER) ||
@@ -2407,10 +2389,10 @@ Vector2i CellMap::get_neighbor_cell(const Vector2i &p_coords, CellSet::CellNeigh
 					}
 				}
 			} break;
-			case CellSet::cell_LAYOUT_STAIRS_RIGHT:
-			case CellSet::cell_LAYOUT_STAIRS_DOWN: {
-				if ((cell_set->get_cell_layout() == CellSet::cell_LAYOUT_STAIRS_RIGHT) ^ (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_VERTICAL)) {
-					if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+			case CellSet::CELL_LAYOUT_STAIRS_RIGHT:
+			case CellSet::CELL_LAYOUT_STAIRS_DOWN: {
+				if ((cell_set->get_cell_layout() == CellSet::CELL_LAYOUT_STAIRS_RIGHT) ^ (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_VERTICAL)) {
+					if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 						if ((shape == CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_CORNER) ||
 								(shape != CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_SIDE)) {
 							return p_coords + Vector2i(1, 0);
@@ -2458,7 +2440,7 @@ Vector2i CellMap::get_neighbor_cell(const Vector2i &p_coords, CellSet::CellNeigh
 						}
 					}
 				} else {
-					if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+					if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 						if ((shape == CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_CORNER) ||
 								(shape != CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_SIDE)) {
 							return p_coords + Vector2i(2, -1);
@@ -2507,10 +2489,10 @@ Vector2i CellMap::get_neighbor_cell(const Vector2i &p_coords, CellSet::CellNeigh
 					}
 				}
 			} break;
-			case CellSet::cell_LAYOUT_DIAMOND_RIGHT:
-			case CellSet::cell_LAYOUT_DIAMOND_DOWN: {
-				if ((cell_set->get_cell_layout() == CellSet::cell_LAYOUT_DIAMOND_RIGHT) ^ (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_VERTICAL)) {
-					if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+			case CellSet::CELL_LAYOUT_DIAMOND_RIGHT:
+			case CellSet::CELL_LAYOUT_DIAMOND_DOWN: {
+				if ((cell_set->get_cell_layout() == CellSet::CELL_LAYOUT_DIAMOND_RIGHT) ^ (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_VERTICAL)) {
+					if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 						if ((shape == CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_CORNER) ||
 								(shape != CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_SIDE)) {
 							return p_coords + Vector2i(1, 1);
@@ -2558,7 +2540,7 @@ Vector2i CellMap::get_neighbor_cell(const Vector2i &p_coords, CellSet::CellNeigh
 						}
 					}
 				} else {
-					if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+					if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 						if ((shape == CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_CORNER) ||
 								(shape != CellSet::CELL_SHAPE_ISOMETRIC && p_cell_neighbor == CellSet::CELL_NEIGHBOR_RIGHT_SIDE)) {
 							return p_coords + Vector2i(1, -1);
@@ -2691,7 +2673,7 @@ TypedArray<Vector2i> CellMap::get_surrounding_cells(const Vector2i &coords) {
 		around.push_back(get_neighbor_cell(coords, CellSet::CELL_NEIGHBOR_TOP_LEFT_SIDE));
 		around.push_back(get_neighbor_cell(coords, CellSet::CELL_NEIGHBOR_TOP_RIGHT_SIDE));
 	} else {
-		if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+		if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 			around.push_back(get_neighbor_cell(coords, CellSet::CELL_NEIGHBOR_RIGHT_SIDE));
 			around.push_back(get_neighbor_cell(coords, CellSet::CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE));
 			around.push_back(get_neighbor_cell(coords, CellSet::CELL_NEIGHBOR_BOTTOM_LEFT_SIDE));
@@ -2742,7 +2724,7 @@ void CellMap::draw_cells_outline(Control *p_control, const RBSet<Vector2i> &p_ce
 			DRAW_SIDE_IF_NEEDED(CellSet::CELL_NEIGHBOR_TOP_LEFT_SIDE, 0, 1);
 			DRAW_SIDE_IF_NEEDED(CellSet::CELL_NEIGHBOR_TOP_RIGHT_SIDE, 3, 0);
 		} else {
-			if (cell_set->get_cell_offset_axis() == CellSet::cell_OFFSET_AXIS_HORIZONTAL) {
+			if (cell_set->get_cell_offset_axis() == CellSet::CELL_OFFSET_AXIS_HORIZONTAL) {
 				DRAW_SIDE_IF_NEEDED(CellSet::CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE, 3, 4);
 				DRAW_SIDE_IF_NEEDED(CellSet::CELL_NEIGHBOR_BOTTOM_LEFT_SIDE, 2, 3);
 				DRAW_SIDE_IF_NEEDED(CellSet::CELL_NEIGHBOR_LEFT_SIDE, 1, 2);

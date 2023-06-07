@@ -41,6 +41,61 @@
 
 class CellSetAtlasSource;
 
+struct CellMapQuadrant {
+	struct CoordsWorldComparator {
+		_ALWAYS_INLINE_ bool operator()(const Vector2 &p_a, const Vector2 &p_b) const {
+			// We sort the cells by their local coords, as it is needed by rendering.
+			if (p_a.y == p_b.y) {
+				return p_a.x > p_b.x;
+			} else {
+				return p_a.y < p_b.y;
+			}
+		}
+	};
+
+	// Dirty list element.
+	SelfList<CellMapQuadrant> dirty_list_element;
+
+	// Quadrant layer and coords.
+	int layer = -1;
+	Vector2i coords;
+
+	// CellMapCells
+	RBSet<Vector2i> cells;
+	// We need those two maps to sort by local position for rendering
+	// This is kind of workaround, it would be better to sort the cells directly in the "cells" set instead.
+	RBMap<Vector2i, Vector2> map_to_local;
+	RBMap<Vector2, Vector2i, CoordsWorldComparator> local_to_map;
+
+	// Debug.
+	RID debug_canvas_item;
+
+	// Rendering.
+	List<RID> canvas_items;
+
+	// Runtime CellData cache.
+	HashMap<Vector2i, CellData *> runtime_cell_data_cache;
+
+	void operator=(const CellMapQuadrant &q) {
+		layer = q.layer;
+		coords = q.coords;
+		debug_canvas_item = q.debug_canvas_item;
+		canvas_items = q.canvas_items;
+	}
+
+	CellMapQuadrant(const CellMapQuadrant &q) :
+			dirty_list_element(this) {
+		layer = q.layer;
+		coords = q.coords;
+		debug_canvas_item = q.debug_canvas_item;
+		canvas_items = q.canvas_items;
+	}
+
+	CellMapQuadrant() :
+			dirty_list_element(this) {
+	}
+};
+
 class CellMap : public Node2D {
 	GDCLASS(CellMap, Node2D);
 
@@ -113,6 +168,7 @@ private:
 	// Properties.
 	Ref<CellSet> cell_set;
 
+	int quadrant_size = 16;
 	// Updates.
 	bool pending_update = false;
 
@@ -134,13 +190,26 @@ private:
 		HashMap<Vector2i, CellMapCell> cell_map;
 		RID navigation_map;
 		bool uses_world_navigation_map = false;
+		HashMap<Vector2i, CellMapQuadrant> quadrant_map;
+		SelfList<CellMapQuadrant>::List dirty_quadrant_list;
 	};
 	LocalVector<CellMapLayer> layers;
 	int selected_layer = -1;
 
+	// Quadrants and internals management.
+	Vector2i _coords_to_quadrant_coords(int p_layer, const Vector2i &p_coords) const;
+
+	HashMap<Vector2i, CellMapQuadrant>::Iterator _create_quadrant(int p_layer, const Vector2i &p_qk);
+	void _make_quadrant_dirty(HashMap<Vector2i, CellMapQuadrant>::Iterator Q);
+	void _make_all_quadrants_dirty();
+	void _queue_update_dirty_quadrants();
+
+	virtual void _update_dirty_quadrants();
+
 	void _recreate_layer_internals(int p_layer);
 	void _recreate_internals();
 
+	virtual void _erase_quadrant(HashMap<Vector2i, CellMapQuadrant>::Iterator Q);
 	void _clear_layer_internals(int p_layer);
 	void _clear_internals();
 
@@ -153,6 +222,7 @@ private:
 	virtual void _rendering_notification(int p_what);
 	void _rendering_update_layer(int p_layer);
 	void _rendering_cleanup_layer(int p_layer);
+	void _rendering_create_quadrant(CellMapQuadrant *p_quadrant);
 
 	// Terrains.
 	CellSet::TerrainsPattern _get_best_terrain_pattern_for_constraints(int p_terrain_set, const Vector2i &p_position, const RBSet<TerrainConstraint> &p_constraints, CellSet::TerrainsPattern p_current_pattern);
@@ -163,6 +233,8 @@ private:
 	void _set_cell_data(int p_layer, const Vector<int> &p_data);
 	Vector<int> _get_cell_data(int p_layer) const;
 
+	void _build_runtime_update_cell_data(SelfList<CellMapQuadrant>::List &r_dirty_quadrant_list);
+
 	void _cell_set_changed();
 	bool _cell_set_changed_deferred_update_needed = false;
 	void _cell_set_changed_deferred_update();
@@ -172,7 +244,7 @@ protected:
 	bool _get(const StringName &p_name, Variant &r_ret) const;
 	void _get_property_list(List<PropertyInfo> *p_list) const;
 
-	void _notification(int p_what);
+	virtual void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -189,6 +261,9 @@ public:
 	virtual void set_cellset(const Ref<CellSet> &p_cellset) = 0;
 	Ref<CellSet> get_cellset() const;
 
+	void set_quadrant_size(int p_size);
+	int get_quadrant_size() const;
+
 	static void draw_cell(RID p_canvas_item, const Vector2 &p_position, const Ref<CellSet> p_cell_set, int p_atlas_source_id, const Vector2i &p_atlas_coords, int p_alternative_cell, int p_frame = -1, Color p_modulation = Color(1.0, 1.0, 1.0, 1.0), const CellData *p_cell_data_override = nullptr);
 
 	// Layers management.
@@ -200,7 +275,7 @@ public:
 	String get_layer_name(int p_layer) const;
 	void set_layer_enabled(int p_layer, bool p_visible);
 	bool is_layer_enabled(int p_layer) const;
-	void set_layer_modulate(int p_layer, Color p_modulate);
+	virtual void set_layer_modulate(int p_layer, Color p_modulate);
 	Color get_layer_modulate(int p_layer) const;
 	void set_layer_y_sort_enabled(int p_layer, bool p_enabled);
 	bool is_layer_y_sort_enabled(int p_layer) const;
@@ -221,7 +296,7 @@ public:
 	CellData *get_cell_data(int p_layer, const Vector2i &p_coords, bool p_use_proxies = false) const;
 
 	// Patterns.
-	virtual Ref<TileMapPattern> get_pattern(int p_layer, TypedArray<Vector2i> p_coords_array) = 0;
+	virtual Ref<CellMapPattern> get_pattern(int p_layer, TypedArray<Vector2i> p_coords_array) = 0;
 	Vector2i map_pattern(const Vector2i &p_position_in_cellmap, const Vector2i &p_coords_in_pattern, Ref<CellMapPattern> p_pattern);
 	void set_pattern(int p_layer, const Vector2i &p_position, const Ref<CellMapPattern> p_pattern);
 
@@ -236,7 +311,11 @@ public:
 
 	// Not exposed to users
 	CellMapCell get_cell(int p_layer, const Vector2i &p_coords, bool p_use_proxies = false) const;
+	HashMap<Vector2i, CellMapQuadrant> *get_quadrant_map(int p_layer);
+	int get_effective_quadrant_size(int p_layer) const;
 	//---
+
+	virtual void set_y_sort_enabled(bool p_enable);
 
 	Vector2 map_to_local(const Vector2i &p_pos) const;
 	Vector2i local_to_map(const Vector2 &p_pos) const;
