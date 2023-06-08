@@ -471,7 +471,6 @@ int TileMap::get_effective_quadrant_size(int p_layer) const {
 	ERR_FAIL_INDEX_V(p_layer, (int)layers.size(), 1);
 
 	// When using YSort, the quadrant size is reduced to 1 to have one CanvasItem per quadrant
-	// TODO (jeff venancius) - That seems bad.
 	if (is_y_sort_enabled() && layers[p_layer].y_sort_enabled) {
 		return 1;
 	} else {
